@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "boxes"
+version = "1.0.0"
+description = "Virtualization made simple — cross-platform VM manager"
+readme = "README.md"
+license = "LGPL-2.1+"
+authors = [
+    {name = "Alessio Attilio", email = "attilio.alessio@protonmail.com"},
+]
+requires-python = ">=3.11"
+dependencies = [
+    "PyQt6>=6.5",
+]
+optional-dependencies.dev = [
+    "pytest>=7",
+    "pytest-qt>=4",
+    "ruff>=0.1",
+    "mypy>=1.0",
+]
+optional-dependencies.libvirt = [
+    "libvirt-python>=10",
+]
+
+[project.scripts]
+boxes = "boxes.app:main"
+
+[tool.setuptools.packages.find]
+include = ["boxes*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
