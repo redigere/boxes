@@ -1,0 +1,266 @@
+from typing import Optional
+from boxes.backends import BaseBackend, BackendCapabilities
+from boxes.models.config import BoxConfig
+from boxes.models.machine import MachineState
+
+
+class LibvirtBackend(BaseBackend):
+    def __init__(self, uri: str = "qemu:///session") -> None:
+        super().__init__()
+        self.uri = uri
+        self.capabilities.snapshots = True
+        self.capabilities.usb_redirection = True
+        self.capabilities.shared_folders = True
+        self.capabilities.storage_pools = True
+        self.capabilities.networks = True
+        self._conn = None
+        self._libvirt = None
+
+    def _import_libvirt(self):
+        if self._libvirt is None:
+            import libvirt as _lv
+            self._libvirt = _lv
+        return self._libvirt
+
+    def connect(self) -> bool:
+        try:
+            lv = self._import_libvirt()
+            self._conn = lv.open(self.uri)
+            return self._conn is not None
+        except Exception:
+            return False
+
+    def disconnect(self) -> None:
+        if self._conn:
+            try:
+                self._conn.close()
+            except Exception:
+                pass
+            self._conn = None
+
+    @property
+    def connected(self) -> bool:
+        return self._conn is not None
+
+    def list_machines(self) -> list[dict]:
+        if not self.connected:
+            return []
+        lv = self._libvirt
+        results = []
+        try:
+            for domain_id in self._conn.listDomainsID():
+                dom = self._conn.lookupByID(domain_id)
+                state, max_mem, mem, vcpus, cpu_time = dom.info()
+                results.append({
+                    "name": dom.name(),
+                    "uuid": dom.UUIDString(),
+                    "state": state,
+                    "max_mem": max_mem,
+                    "vcpus": vcpus,
+                    "id": domain_id,
+                    "active": True,
+                })
+            for name in self._conn.listDefinedDomains():
+                dom = self._conn.lookupByName(name)
+                results.append({
+                    "name": dom.name(),
+                    "uuid": dom.UUIDString(),
+                    "state": 0,
+                    "max_mem": 0,
+                    "vcpus": 0,
+                    "id": -1,
+                    "active": False,
+                })
+        except Exception:
+            pass
+        return results
+
+    def define_machine(self, config: BoxConfig) -> Optional[str]:
+        if not self.connected:
+            return None
+        lv = self._libvirt
+        xml = self._build_domain_xml(config)
+        try:
+            dom = self._conn.defineXML(xml)
+            return dom.UUIDString()
+        except Exception:
+            return None
+
+    def undefine_machine(self, backend_id: str) -> bool:
+        if not self.connected:
+            return False
+        try:
+            dom = self._conn.lookupByUUIDString(backend_id)
+            dom.undefine()
+            return True
+        except Exception:
+            return False
+
+    def start_machine(self, backend_id: str) -> bool:
+        if not self.connected:
+            return False
+        try:
+            dom = self._conn.lookupByUUIDString(backend_id)
+            dom.create()
+            return True
+        except Exception:
+            return False
+
+    def shutdown_machine(self, backend_id: str) -> bool:
+        if not self.connected:
+            return False
+        try:
+            dom = self._conn.lookupByUUIDString(backend_id)
+            dom.shutdown()
+            return True
+        except Exception:
+            return False
+
+    def pause_machine(self, backend_id: str) -> bool:
+        if not self.connected:
+            return False
+        try:
+            dom = self._conn.lookupByUUIDString(backend_id)
+            dom.suspend()
+            return True
+        except Exception:
+            return False
+
+    def resume_machine(self, backend_id: str) -> bool:
+        if not self.connected:
+            return False
+        try:
+            dom = self._conn.lookupByUUIDString(backend_id)
+            dom.resume()
+            return True
+        except Exception:
+            return False
+
+    def delete_machine(self, backend_id: str) -> bool:
+        if not self.connected:
+            return False
+        try:
+            dom = self._conn.lookupByUUIDString(backend_id)
+            dom.undefine()
+            try:
+                vol_path = f"/var/lib/libvirt/images/{dom.name()}.qcow2"
+                pool = self._conn.storagePoolLookupByName("default")
+                vol = pool.storageVolLookupByName(f"{dom.name()}.qcow2")
+                vol.delete(0)
+            except Exception:
+                pass
+            return True
+        except Exception:
+            return False
+
+    def get_state(self, backend_id: str) -> int:
+        if not self.connected:
+            return MachineState.STOPPED
+        try:
+            dom = self._conn.lookupByUUIDString(backend_id)
+            state, _, _, _, _ = dom.info()
+            mapping = {1: MachineState.RUNNING, 2: MachineState.PAUSED,
+                       3: MachineState.SLEEPING, 5: MachineState.SLEEPING,
+                       4: MachineState.CRASHED}
+            return mapping.get(state, MachineState.STOPPED)
+        except Exception:
+            return MachineState.STOPPED
+
+    def create_disk_image(self, path: str, size_gb: int) -> bool:
+        if not self.connected:
+            return False
+        lv = self._libvirt
+        try:
+            pool = self._conn.storagePoolLookupByName("default")
+            if pool is None:
+                return False
+            xml = f"""
+            <volume>
+                <name>{path.split('/')[-1]}</name>
+                <capacity unit='G'>{size_gb}</capacity>
+                <allocation unit='G'>0</allocation>
+                <target>
+                    <format type='qcow2'/>
+                    <path>{path}</path>
+                </target>
+            </volume>"""
+            pool.createXML(xml)
+            return True
+        except Exception:
+            return False
+
+    def get_display_address(self, backend_id: str) -> Optional[str]:
+        if not self.connected:
+            return None
+        try:
+            dom = self._conn.lookupByUUIDString(backend_id)
+            xml = dom.XMLDesc()
+            import re
+            match = re.search(r"<graphics type='(\w+)'.*?port='(\d+)'.*?listen='([^']*)'", xml)
+            if match:
+                return match.group(3)
+            match = re.search(r"<graphics type='(\w+)'.*?autoport='yes'", xml)
+            if match:
+                return "127.0.0.1"
+            return None
+        except Exception:
+            return None
+
+    def get_display_port(self, backend_id: str) -> Optional[int]:
+        if not self.connected:
+            return None
+        try:
+            dom = self._conn.lookupByUUIDString(backend_id)
+            xml = dom.XMLDesc()
+            import re
+            match = re.search(r"<graphics type='(\w+)'.*?port='(\d+)'", xml)
+            if match:
+                return int(match.group(2))
+            return None
+        except Exception:
+            return None
+
+    def _build_domain_xml(self, config: BoxConfig) -> str:
+        return f"""<domain type='kvm'>
+  <name>{config.name}</name>
+  <uuid>{config.uuid}</uuid>
+  <memory unit='MiB'>{config.memory_mb}</memory>
+  <vcpu>{config.vcpus}</vcpu>
+  <os>
+    <type arch='{config.arch}' machine='{config.machine_type}'>hvm</type>
+    <boot dev='hd'/>
+    <boot dev='cdrom'/>
+  </os>
+  <features>
+    <acpi/><apic/><pae/>
+  </features>
+  <cpu mode='host-passthrough'/>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <devices>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='{config.disk_path or ""}'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='{config.iso_path or ""}'/>
+      <target dev='sda' bus='sata'/>
+      <readonly/>
+    </disk>
+    <interface type='network'>
+      <source network='{config.network}'/>
+      <model type='virtio'/>
+    </interface>
+    <graphics type='{config.graphics}' port='-1' autoport='yes' listen='127.0.0.1'>
+      <gl enable='no'/>
+    </graphics>
+    <video>
+      <model type='qxl' ram='65536' vram='65536' heads='1'/>
+    </video>
+    <memballoon model='virtio'/>
+  </devices>
+</domain>"""
