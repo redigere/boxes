@@ -1,6 +1,5 @@
 from dataclasses import asdict
 import json
-from pathlib import Path
 
 from boxes.models.config import BoxConfig
 from boxes.models.machine import Machine, MachineState
