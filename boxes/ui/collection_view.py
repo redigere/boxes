@@ -3,6 +3,7 @@ from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QBrush
 from PyQt6.QtWidgets import QStyledItemDelegate, QListView, QStyle, QAbstractItemView
 
 from boxes.models.machine import MachineState
+from boxes.theme import ThemeManager
 
 
 class IconViewDelegate(QStyledItemDelegate):
@@ -17,38 +18,39 @@ class IconViewDelegate(QStyledItemDelegate):
         name = index.data(Qt.ItemDataRole.DisplayRole) or "VM"
         rect = option.rect
 
-        bg = QColor("#f8f9fa")
+        _c = ThemeManager.color
+        bg = QColor(_c("surface_alt", "#f8fafc"))
         if option.state & QStyle.StateFlag.State_Selected:
-            bg = QColor("#e2e8f0")
+            bg = QColor(_c("highlight", "#e2e8f0"))
         elif option.state & QStyle.StateFlag.State_MouseOver:
-            bg = QColor("#eef2f6")
+            bg = QColor(_c("surface_alt", "#f1f5f9"))
         painter.fillRect(rect, bg)
 
         cx = rect.x() + rect.width() // 2
         icon_r = QRect(cx - 48, rect.y() + 12, 96, 96)
-        painter.setBrush(QBrush(QColor("#7c3aed")))
+        painter.setBrush(QBrush(QColor(_c("accent", "#7c3aed"))))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRoundedRect(icon_r, 20, 20)
-        painter.setPen(QPen(QColor("white"), 1))
+        painter.setPen(QPen(QColor(_c("text_inverse", "white")), 1))
         f = QFont("sans-serif", 28, QFont.Weight.Bold)
         painter.setFont(f)
         painter.drawText(icon_r, Qt.AlignmentFlag.AlignCenter, name[:2].upper())
 
         f = QFont("sans-serif", 11)
         painter.setFont(f)
-        painter.setPen(QPen(QColor("#1f2937"), 1))
+        painter.setPen(QPen(QColor(_c("text", "#1f2937")), 1))
         text_r = QRect(rect.x(), icon_r.bottom() + 8, rect.width(), 20)
         painter.drawText(text_r, Qt.AlignmentFlag.AlignCenter, name)
 
         if machine:
-            painter.setPen(QPen(QColor(MachineState.COLORS.get(machine.state, "#9aa0a6")), 1))
+            painter.setPen(QPen(QColor(MachineState.COLORS.get(machine.state, _c("text_muted", "#9aa0a6"))), 1))
             f.setPointSize(9)
             painter.setFont(f)
             status_r = QRect(rect.x(), text_r.bottom(), rect.width(), 16)
             painter.drawText(status_r, Qt.AlignmentFlag.AlignCenter, machine.status_text)
 
         if option.state & QStyle.StateFlag.State_Selected:
-            painter.setPen(QPen(QColor("#6366f1"), 2))
+            painter.setPen(QPen(QColor(_c("accent", "#6366f1")), 2))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawRoundedRect(rect.adjusted(2, 2, -2, -2), 6, 6)
         painter.restore()
@@ -65,30 +67,31 @@ class ListViewDelegate(QStyledItemDelegate):
         name = index.data(Qt.ItemDataRole.DisplayRole) or "VM"
         rect = option.rect
 
-        bg = QColor("white")
+        _c = ThemeManager.color
+        bg = QColor(_c("surface", "white"))
         if option.state & QStyle.StateFlag.State_Selected:
-            bg = QColor("#e2e8f0")
+            bg = QColor(_c("highlight", "#e2e8f0"))
         elif option.state & QStyle.StateFlag.State_MouseOver:
-            bg = QColor("#f8fafc")
+            bg = QColor(_c("surface_alt", "#f8fafc"))
         painter.fillRect(rect, bg)
 
         icon_r = QRect(rect.x() + 8, rect.y() + 6, 36, 36)
-        painter.setBrush(QBrush(QColor("#7c3aed")))
+        painter.setBrush(QBrush(QColor(_c("accent", "#7c3aed"))))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRoundedRect(icon_r, 8, 8)
-        painter.setPen(QPen(QColor("white"), 1))
+        painter.setPen(QPen(QColor(_c("text_inverse", "white")), 1))
         f = QFont("sans-serif", 12, QFont.Weight.Bold)
         painter.setFont(f)
         painter.drawText(icon_r, Qt.AlignmentFlag.AlignCenter, name[:2].upper())
 
         f = QFont("sans-serif", 12)
         painter.setFont(f)
-        painter.setPen(QPen(QColor("#1f2937"), 1))
+        painter.setPen(QPen(QColor(_c("text", "#1f2937")), 1))
         painter.drawText(QRect(rect.x() + 52, rect.y() + 6, 260, 20),
                          Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, name)
 
         if machine:
-            painter.setPen(QPen(QColor(MachineState.COLORS.get(machine.state, "#9aa0a6")), 1))
+            painter.setPen(QPen(QColor(MachineState.COLORS.get(machine.state, _c("text_muted", "#9aa0a6"))), 1))
             f.setPointSize(10)
             painter.setFont(f)
             painter.drawText(QRect(rect.x() + 52, rect.y() + 26, 260, 16),
@@ -96,12 +99,12 @@ class ListViewDelegate(QStyledItemDelegate):
                              machine.status_text)
 
             info = f"{machine.config.memory_mb} MB  |  {machine.config.vcpus} vCPU"
-            painter.setPen(QPen(QColor("#64748b"), 1))
+            painter.setPen(QPen(QColor(_c("text_muted", "#64748b")), 1))
             painter.drawText(QRect(rect.right() - 240, rect.y(), 220, 48),
                              Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, info)
 
         if option.state & QStyle.StateFlag.State_Selected:
-            painter.setPen(QPen(QColor("#6366f1"), 2))
+            painter.setPen(QPen(QColor(_c("accent", "#6366f1")), 2))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawRoundedRect(rect.adjusted(1, 1, -1, -1), 4, 4)
         painter.restore()

@@ -7,13 +7,6 @@ class ToastWidget(QWidget):
 
     def __init__(self, message: str, action: str = "", duration_ms: int = 5000, parent=None) -> None:
         super().__init__(parent)
-        self.setStyleSheet("""
-            ToastWidget { background: #1e293b; border-radius: 24px; padding: 0px; }
-            QLabel { color: #f8fafc; font-size: 13px; padding: 8px 16px; }
-            QPushButton { color: #818cf8; background: transparent; border: none;
-                         font-weight: bold; font-size: 13px; padding: 8px 16px; }
-            QPushButton:hover { color: #a5b4fc; }
-        """)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(12, 6, 8, 6)
 
@@ -46,7 +39,6 @@ class ToastOverlay(QWidget):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
-        self.setStyleSheet("background: transparent;")
         self._layout = QVBoxLayout(self)
         self._layout.setAlignment(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter)
         self._layout.setContentsMargins(0, 0, 0, 32)

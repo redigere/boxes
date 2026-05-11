@@ -12,14 +12,6 @@ class Topbar(QWidget):
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self.setStyleSheet("""
-            Topbar { background: #1e293b; border-bottom: 1px solid #334155; min-height: 48px; }
-            QLabel { color: #f1f5f9; font-size: 14px; }
-            QPushButton { background: #334155; color: #e2e8f0; border: none;
-                         border-radius: 6px; padding: 6px 16px; font-size: 13px; }
-            QPushButton:hover { background: #475569; }
-            QPushButton:pressed { background: #1e293b; }
-        """)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(12, 6, 12, 6)
 
@@ -29,7 +21,7 @@ class Topbar(QWidget):
         layout.addWidget(self.back_btn)
 
         self.title = QLabel("Boxes")
-        self.title.setStyleSheet("font-size: 18px; font-weight: bold; color: #f1f5f9;")
+        self.title.setObjectName("topbarTitle")
         layout.addWidget(self.title)
         layout.addStretch()
 

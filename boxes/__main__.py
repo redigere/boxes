@@ -1,4 +1,4 @@
 import sys
-from boxes.app import main
+from boxes.cli import main
 
 sys.exit(main())

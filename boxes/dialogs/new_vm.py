@@ -122,7 +122,7 @@ class SummaryPage(QWizardPage):
         layout = QVBoxLayout(self)
         self.summary = QLabel()
         self.summary.setWordWrap(True)
-        self.summary.setStyleSheet("font-size: 13px; padding: 16px; background: #f8fafc; border-radius: 8px;")
+        self.summary.setObjectName("summary")
         layout.addWidget(self.summary)
         layout.addStretch()
 

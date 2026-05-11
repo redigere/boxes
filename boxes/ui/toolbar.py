@@ -8,17 +8,6 @@ class CollectionToolbar(QWidget):
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self.setStyleSheet("""
-            CollectionToolbar { background: #f8fafc; border-bottom: 1px solid #e2e8f0;
-                              min-height: 48px; padding: 4px 16px; }
-            QLabel { color: #0f172a; font-size: 18px; font-weight: bold; }
-            QPushButton { background: transparent; color: #475569; border: 1px solid #cbd5e1;
-                         border-radius: 6px; padding: 6px 14px; font-size: 13px; }
-            QPushButton:hover { background: #e2e8f0; }
-            QPushButton:checked { background: #6366f1; color: white; border-color: #6366f1; }
-            #newBtn { background: #6366f1; color: white; border: none; font-weight: bold; }
-            #newBtn:hover { background: #4f46e5; }
-        """)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(16, 8, 16, 8)
 
@@ -56,14 +45,6 @@ class DisplayToolbar(QWidget):
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self.setStyleSheet("""
-            DisplayToolbar { background: #1e293b; border-bottom: 1px solid #334155;
-                           min-height: 40px; padding: 4px 8px; }
-            QPushButton { background: #334155; color: #cbd5e1; border: none;
-                         border-radius: 4px; padding: 4px 12px; font-size: 12px; }
-            QPushButton:hover { background: #475569; color: #f1f5f9; }
-            QPushButton:checked { background: #6366f1; color: white; }
-        """)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(8, 4, 8, 4)
 

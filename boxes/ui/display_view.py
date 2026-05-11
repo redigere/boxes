@@ -14,7 +14,7 @@ class DisplayWidget(QWidget):
         self.machine = machine
         self.setMinimumSize(640, 480)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.setStyleSheet("background-color: #0f172a;")
+        self.setObjectName("displayWidget")
         self._frame: QImage = QImage(640, 480, QImage.Format.Format_RGB32)
         self._frame.fill(QColor("#1e293b").rgb())
         self._vnc_sock: Optional[socket.socket] = None
@@ -69,7 +69,7 @@ class DisplayWidget(QWidget):
     def connect_spice(self, port: int) -> None:
         self._fps_placeholder = QLabel(f"SPICE connected on port {port}")
         self._fps_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._fps_placeholder.setStyleSheet("color: #4ade80; font-size: 16px;")
+        self._fps_placeholder.setObjectName("fpsLabel")
 
     def paintEvent(self, event) -> None:
         painter = QPainter(self)

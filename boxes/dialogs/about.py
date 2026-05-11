@@ -10,7 +10,7 @@ class AboutDialog(QDialog):
         layout = QVBoxLayout(self)
 
         title = QLabel("<h1>Boxes</h1>")
-        title.setStyleSheet("font-size: 28px; font-weight: bold; color: #6366f1;")
+        title.setObjectName("aboutTitle")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
@@ -27,7 +27,7 @@ class AboutDialog(QDialog):
         )
         desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
         desc.setWordWrap(True)
-        desc.setStyleSheet("color: #475569;")
+        desc.setObjectName("aboutDesc")
         layout.addWidget(desc)
 
         layout.addStretch()
