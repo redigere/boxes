@@ -1,6 +1,5 @@
 from typing import Optional
 from dataclasses import dataclass, asdict
-from pathlib import Path
 import json
 
 from boxes.constants import BOXES_DATA

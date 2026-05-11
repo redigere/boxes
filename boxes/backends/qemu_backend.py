@@ -6,7 +6,7 @@ import signal
 import time
 from pathlib import Path
 
-from boxes.backends import BaseBackend, BackendCapabilities
+from boxes.backends import BaseBackend
 from boxes.models.config import BoxConfig
 from boxes.models.machine import MachineState
 from boxes.constants import QEMU_BINARIES, BOXES_IMAGES
@@ -166,13 +166,11 @@ class QEMUBackend(BaseBackend):
         proc = self._processes.get(backend_id)
         if proc is None:
             return False
-        result = False
         resp = proc.send_qmp({"execute": "system_powerdown"})
         if resp and "error" not in resp:
-            result = True
-        time.sleep(1)
-        if proc.query_status() == "stopped":
-            return True
+            time.sleep(1)
+            if proc.query_status() == "stopped":
+                return True
         return proc.stop()
 
     def pause_machine(self, backend_id: str) -> bool:

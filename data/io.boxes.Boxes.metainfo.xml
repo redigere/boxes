@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.boxes.Boxes</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LGPL-2.1+</project_license>
+  <name>Boxes</name>
+  <summary>Virtualization made simple</summary>
+  <description>
+    <p>
+      Boxes is a cross-platform virtual machine manager built with Python and Qt6.
+      It supports libvirt, direct QEMU subprocess, and remote SSH backends,
+      making it easy to create, manage, and access virtual machines on Linux,
+      macOS, and Windows.
+    </p>
+  </description>
+  <categories>
+    <category>System</category>
+    <category>Emulator</category>
+  </categories>
+  <url type="homepage">https://boxes.io</url>
+  <url type="bugtracker">https://github.com/attilio/boxes/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://boxes.io/screenshots/collection.png</image>
+      <caption>Main collection view</caption>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="1.0.0" date="2026-05-11"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

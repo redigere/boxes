@@ -31,6 +31,15 @@ boxes = "boxes.app:main"
 [tool.setuptools.packages.find]
 include = ["boxes*"]
 
+[tool.setuptools.package-data]
+boxes = ["resources/*"]
+
+[tool.setuptools.data-files]
+# Install desktop/metainfo/gschema into share directories
+# Icons are installed system-wide; setuptools copies them under data/
+# For pip installs, use data_files relative to sys.prefix
+# For flatpak, the manifest handles paths separately
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"

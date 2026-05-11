@@ -1,5 +1,7 @@
 import shutil
 import subprocess
+import os
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -32,16 +34,79 @@ def check_kvm_available() -> bool:
     return Path("/dev/kvm").exists()
 
 
+def check_xen_available() -> bool:
+    if Path("/proc/xen").exists():
+        return True
+    if Path("/dev/xen/privcmd").exists():
+        return True
+    xl = shutil.which("xl")
+    if xl:
+        try:
+            result = subprocess.run([xl, "info"], capture_output=True, text=True, timeout=5)
+            return result.returncode == 0
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+    return False
+
+
 def check_libvirt_available() -> bool:
     return shutil.which("virsh") is not None
 
 
+def check_hyperv_available() -> bool:
+    if sys.platform not in ("win32", "cygwin"):
+        return False
+    try:
+        result = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-Command",
+             "Get-Command Get-VM -ErrorAction SilentlyContinue"],
+            capture_output=True, text=True, timeout=10
+        )
+        return result.returncode == 0 and "Get-VM" in (result.stdout or "")
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+
+
+def check_macos_hvf_available() -> bool:
+    if sys.platform != "darwin":
+        return False
+    try:
+        result = subprocess.run(
+            ["sysctl", "-n", "kern.hv_support"],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.returncode == 0 and result.stdout.strip() == "1":
+            return True
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass
+    try:
+        import ctypes
+        lib = ctypes.CDLL("/System/Library/Frameworks/Hypervisor.framework/Hypervisor")
+        return lib is not None
+    except (OSError, AttributeError):
+        return False
+
+
+def check_type0_available() -> bool:
+    if check_kvm_available():
+        try:
+            fd = os.open("/dev/kvm", os.O_RDWR)
+            os.close(fd)
+            return True
+        except (OSError, PermissionError):
+            pass
+    if check_xen_available():
+        return True
+    return False
+
+
 def human_size(bytes_val: int) -> str:
+    val = float(bytes_val)
     for unit in ("B", "KB", "MB", "GB", "TB"):
-        if bytes_val < 1024:
-            return f"{bytes_val:.1f} {unit}"
-        bytes_val /= 1024
-    return f"{bytes_val:.1f} PB"
+        if val < 1024:
+            return f"{val:.1f} {unit}"
+        val /= 1024
+    return f"{val:.1f} PB"
 
 
 def truncate_text(text: str, max_len: int = 60) -> str:

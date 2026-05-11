@@ -1,5 +1,3 @@
-from pathlib import Path
-from typing import Optional
 from dataclasses import dataclass, asdict
 import json
 

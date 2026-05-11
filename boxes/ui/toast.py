@@ -32,6 +32,10 @@ class ToastWidget(QWidget):
         if duration_ms > 0:
             QTimer.singleShot(duration_ms, self.dismiss)
 
+    def dismiss(self) -> None:
+        self.dismissed.emit()
+        self.hide()
+
     def on_action(self, callback) -> None:
         if self.action_btn:
             self.action_btn.clicked.connect(callback)

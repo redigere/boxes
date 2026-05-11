@@ -1,4 +1,4 @@
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
 
 from boxes.models.machine import Machine
@@ -57,7 +57,6 @@ class Topbar(QWidget):
         self._update_power_button(machine)
 
     def _update_power_button(self, machine: Machine) -> None:
-        from boxes.models.machine import MachineState
         if machine.is_running:
             self.power_btn.setText("⏹ Shutdown")
             self.pause_btn.setText("⏸ Pause")

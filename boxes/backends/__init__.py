@@ -1,9 +1,8 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from typing import Optional, Callable
+from typing import Optional
 
-from boxes.models.machine import Machine
 from boxes.models.config import BoxConfig
+from boxes.models.machine import MachineState
 
 
 class BackendCapabilities:
@@ -16,52 +15,53 @@ class BackendCapabilities:
         self.networks = False
 
 
-class BaseBackend(ABC):
+class BaseBackend:
     def __init__(self) -> None:
         self.capabilities = BackendCapabilities()
+        self._connected = False
 
-    @abstractmethod
-    def connect(self) -> bool: ...
+    def connect(self) -> bool:
+        return self._connected
 
-    @abstractmethod
-    def disconnect(self) -> None: ...
+    def disconnect(self) -> None:
+        self._connected = False
 
     @property
-    @abstractmethod
-    def connected(self) -> bool: ...
+    def connected(self) -> bool:
+        return self._connected
 
-    @abstractmethod
-    def list_machines(self) -> list[dict]: ...
+    def list_machines(self) -> list[dict]:
+        return []
 
-    @abstractmethod
-    def define_machine(self, config: BoxConfig) -> Optional[str]: ...
+    def define_machine(self, config: BoxConfig) -> Optional[str]:
+        return config.uuid
 
-    @abstractmethod
-    def undefine_machine(self, backend_id: str) -> bool: ...
+    def undefine_machine(self, backend_id: str) -> bool:
+        return True
 
-    @abstractmethod
-    def start_machine(self, backend_id: str) -> bool: ...
+    def start_machine(self, backend_id: str) -> bool:
+        return False
 
-    @abstractmethod
-    def shutdown_machine(self, backend_id: str) -> bool: ...
+    def shutdown_machine(self, backend_id: str) -> bool:
+        return False
 
-    @abstractmethod
-    def pause_machine(self, backend_id: str) -> bool: ...
+    def pause_machine(self, backend_id: str) -> bool:
+        return False
 
-    @abstractmethod
-    def resume_machine(self, backend_id: str) -> bool: ...
+    def resume_machine(self, backend_id: str) -> bool:
+        return False
 
-    @abstractmethod
-    def delete_machine(self, backend_id: str) -> bool: ...
+    def delete_machine(self, backend_id: str) -> bool:
+        return True
 
-    @abstractmethod
-    def get_state(self, backend_id: str) -> int: ...
+    def get_state(self, backend_id: str) -> int:
+        return MachineState.STOPPED
 
-    @abstractmethod
-    def create_disk_image(self, path: str, size_gb: int) -> bool: ...
+    def create_disk_image(self, path: str, size_gb: int) -> bool:
+        return False
 
-    @abstractmethod
-    def get_display_address(self, backend_id: str) -> Optional[str]: ...
+    def get_display_address(self, backend_id: str) -> Optional[str]:
+        return "127.0.0.1"
 
-    @abstractmethod
-    def get_display_port(self, backend_id: str) -> Optional[int]: ...
+    def get_display_port(self, backend_id: str) -> Optional[int]:
+        return None

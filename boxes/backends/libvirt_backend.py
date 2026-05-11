@@ -1,5 +1,5 @@
 from typing import Optional
-from boxes.backends import BaseBackend, BackendCapabilities
+from boxes.backends import BaseBackend
 from boxes.models.config import BoxConfig
 from boxes.models.machine import MachineState
 
@@ -43,9 +43,8 @@ class LibvirtBackend(BaseBackend):
         return self._conn is not None
 
     def list_machines(self) -> list[dict]:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return []
-        lv = self._libvirt
         results = []
         try:
             for domain_id in self._conn.listDomainsID():
@@ -76,9 +75,8 @@ class LibvirtBackend(BaseBackend):
         return results
 
     def define_machine(self, config: BoxConfig) -> Optional[str]:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return None
-        lv = self._libvirt
         xml = self._build_domain_xml(config)
         try:
             dom = self._conn.defineXML(xml)
@@ -87,7 +85,7 @@ class LibvirtBackend(BaseBackend):
             return None
 
     def undefine_machine(self, backend_id: str) -> bool:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return False
         try:
             dom = self._conn.lookupByUUIDString(backend_id)
@@ -97,7 +95,7 @@ class LibvirtBackend(BaseBackend):
             return False
 
     def start_machine(self, backend_id: str) -> bool:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return False
         try:
             dom = self._conn.lookupByUUIDString(backend_id)
@@ -107,7 +105,7 @@ class LibvirtBackend(BaseBackend):
             return False
 
     def shutdown_machine(self, backend_id: str) -> bool:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return False
         try:
             dom = self._conn.lookupByUUIDString(backend_id)
@@ -117,7 +115,7 @@ class LibvirtBackend(BaseBackend):
             return False
 
     def pause_machine(self, backend_id: str) -> bool:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return False
         try:
             dom = self._conn.lookupByUUIDString(backend_id)
@@ -127,7 +125,7 @@ class LibvirtBackend(BaseBackend):
             return False
 
     def resume_machine(self, backend_id: str) -> bool:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return False
         try:
             dom = self._conn.lookupByUUIDString(backend_id)
@@ -137,13 +135,12 @@ class LibvirtBackend(BaseBackend):
             return False
 
     def delete_machine(self, backend_id: str) -> bool:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return False
         try:
             dom = self._conn.lookupByUUIDString(backend_id)
             dom.undefine()
             try:
-                vol_path = f"/var/lib/libvirt/images/{dom.name()}.qcow2"
                 pool = self._conn.storagePoolLookupByName("default")
                 vol = pool.storageVolLookupByName(f"{dom.name()}.qcow2")
                 vol.delete(0)
@@ -154,7 +151,7 @@ class LibvirtBackend(BaseBackend):
             return False
 
     def get_state(self, backend_id: str) -> int:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return MachineState.STOPPED
         try:
             dom = self._conn.lookupByUUIDString(backend_id)
@@ -167,9 +164,8 @@ class LibvirtBackend(BaseBackend):
             return MachineState.STOPPED
 
     def create_disk_image(self, path: str, size_gb: int) -> bool:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return False
-        lv = self._libvirt
         try:
             pool = self._conn.storagePoolLookupByName("default")
             if pool is None:
@@ -190,7 +186,7 @@ class LibvirtBackend(BaseBackend):
             return False
 
     def get_display_address(self, backend_id: str) -> Optional[str]:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return None
         try:
             dom = self._conn.lookupByUUIDString(backend_id)
@@ -207,7 +203,7 @@ class LibvirtBackend(BaseBackend):
             return None
 
     def get_display_port(self, backend_id: str) -> Optional[int]:
-        if not self.connected:
+        if not self.connected or self._conn is None:
             return None
         try:
             dom = self._conn.lookupByUUIDString(backend_id)

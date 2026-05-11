@@ -1,6 +1,7 @@
-from PyQt6.QtCore import Qt, QTimer, QRect
+from typing import Optional
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QImage
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
+from PyQt6.QtWidgets import QWidget, QLabel, QSizePolicy
 import socket
 import struct
 
@@ -43,9 +44,9 @@ class DisplayWidget(QWidget):
             return
         data = self._vnc_sock.recv(12)
         if len(data) >= 12 and data[:4] == b"RFB ":
-            ver_major, ver_minor = data[4:7], data[7:11]
+            _ver_major, _ver_minor = data[4:7], data[7:11]
             self._vnc_sock.send(b"RFB 003.008\n")
-            auth = self._vnc_sock.recv(4)
+            _auth = self._vnc_sock.recv(4)
             self._vnc_sock.send(b"\x01" * 16)
             self._vnc_sock.recv(4)
             self._vnc_sock.send(struct.pack("!HH", 640, 480))

@@ -1,0 +1,11 @@
+QMainWindow { background: #f8fafc; }
+QMenuBar { background: #1e293b; color: #e2e8f0; border: none; padding: 2px; }
+QMenuBar::item:selected { background: #334155; }
+QMenu { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; }
+QMenu::item:selected { background: #6366f1; }
+QStatusBar { background: #1e293b; color: #94a3b8; border-top: 1px solid #334155; font-size: 12px; }
+QStatusBar::item { border: none; }
+QScrollBar:vertical { background: #f1f5f9; width: 10px; border-radius: 5px; }
+QScrollBar::handle:vertical { background: #cbd5e1; border-radius: 5px; min-height: 30px; }
+QScrollBar::handle:vertical:hover { background: #94a3b8; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }

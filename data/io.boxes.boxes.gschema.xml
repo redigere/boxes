@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="io.boxes.boxes" path="/io/boxes/boxes/">
+    <key name="window-width" type="i" default="1024">
+      <summary>Window width</summary>
+      <description>Width of the main window in pixels.</description>
+    </key>
+    <key name="window-height" type="i" default="768">
+      <summary>Window height</summary>
+      <description>Height of the main window in pixels.</description>
+    </key>
+    <key name="window-maximized" type="b" default="false">
+      <summary>Window maximized</summary>
+      <description>Whether the main window is maximized.</description>
+    </key>
+    <key name="view-mode" type="s" default="icon">
+      <summary>View mode</summary>
+      <description>Collection view mode: icon or list.</description>
+    </key>
+    <key name="search-filter" type="s" default="">
+      <summary>Search filter</summary>
+      <description>Last used search filter text.</description>
+    </key>
+    <key name="default-ram" type="i" default="2048">
+      <summary>Default RAM (MB)</summary>
+      <description>Default RAM in MB for new VMs.</description>
+    </key>
+    <key name="default-vcpus" type="i" default="2">
+      <summary>Default vCPUs</summary>
+      <description>Default number of virtual CPUs for new VMs.</description>
+    </key>
+    <key name="default-disk-size" type="i" default="20">
+      <summary>Default disk size (GB)</summary>
+      <description>Default disk size in GB for new VMs.</description>
+    </key>
+    <key name="backend-preference" type="s" default="auto">
+      <summary>Backend preference</summary>
+      <description>Preferred virtualization backend: auto, libvirt, qemu, ssh.</description>
+    </key>
+  </schema>
+</schemalist>

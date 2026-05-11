@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import sys
 
 APP_NAME = "Boxes"
 APP_ID = "io.boxes.Boxes"
@@ -33,3 +34,18 @@ QEMU_BINARIES = {
     "arm": "qemu-system-arm",
     "riscv64": "qemu-system-riscv64",
 }
+
+BACKEND_PRIORITY = [
+    "type0",
+    "xen",
+    "libvirt",
+    "qemu",
+    "hyperv",
+    "macos",
+    "ssh",
+]
+
+PLATFORM = sys.platform
+IS_LINUX = PLATFORM == "linux"
+IS_WINDOWS = PLATFORM in ("win32", "cygwin")
+IS_MACOS = PLATFORM == "darwin"

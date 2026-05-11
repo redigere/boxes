@@ -1,0 +1,5 @@
+include data/io.boxes.Boxes.desktop
+include data/io.boxes.Boxes.metainfo.xml
+include data/io.boxes.boxes.gschema.xml
+recursive-include data/icons *
+recursive-include boxes/resources *

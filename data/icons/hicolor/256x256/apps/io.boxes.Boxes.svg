@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg256" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="screen256" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#312e81"/>
+    </linearGradient>
+  </defs>
+  <rect x="24" y="40" width="208" height="160" rx="20" ry="20" fill="url(#bg256)"/>
+  <rect x="44" y="64" width="168" height="112" rx="8" ry="8" fill="url(#screen256)"/>
+  <polygon points="104,96 104,144 148,120" fill="#a5b4fc" opacity="0.9"/>
+  <rect x="100" y="200" width="56" height="12" rx="6" fill="#6366f1"/>
+  <rect x="84" y="212" width="88" height="8" rx="4" fill="#4f46e5"/>
+</svg>

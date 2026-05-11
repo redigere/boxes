@@ -1,4 +1,4 @@
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLineEdit, QPushButton
 
 
@@ -28,7 +28,7 @@ class Searchbar(QWidget):
         layout.addWidget(self.input)
 
         self.close_btn = QPushButton("✕")
-        self.close_btn.clicked.connect(lambda: (self.input.clear(), self.hide()))
+        self.close_btn.clicked.connect(self._close)
         layout.addWidget(self.close_btn)
         self.hide()
 
@@ -44,3 +44,7 @@ class Searchbar(QWidget):
         super().showEvent(event)
         self.input.setFocus()
         self.input.selectAll()
+
+    def _close(self) -> None:
+        self.input.clear()
+        self.hide()

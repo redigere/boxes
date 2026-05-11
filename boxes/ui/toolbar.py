@@ -1,6 +1,5 @@
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QAction, QKeySequence
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel, QButtonGroup
+from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel, QButtonGroup, QSizePolicy
 
 
 class CollectionToolbar(QWidget):
@@ -27,7 +26,7 @@ class CollectionToolbar(QWidget):
         layout.addWidget(self.title)
 
         spacer = QWidget()
-        spacer.setSizePolicy(Qt.SizePolicy(Qt.SizePolicy.Policy.Expanding, Qt.SizePolicy.Policy.Preferred))
+        spacer.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
         layout.addWidget(spacer)
 
         self.icon_btn = QPushButton("Icons")

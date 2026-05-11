@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Boxes
+Comment=Virtualization made simple
+GenericName=Virtual Machine Manager
+Exec=boxes %F
+Icon=io.boxes.Boxes
+Terminal=false
+Type=Application
+Categories=System;Emulator;
+MimeType=application/x-vm;application/x-ovf;
+StartupNotify=true
+DBusActivatable=true
+X-GNOME-UsesNotifications=true

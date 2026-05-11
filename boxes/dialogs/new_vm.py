@@ -6,7 +6,6 @@ from PyQt6.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout,
 from boxes.models.config import BoxConfig
 from boxes.models.osdb import OSDatabase
 from boxes.models.machine import Machine
-from boxes.backends.qemu_backend import QEMUBackend
 from boxes.constants import BOXES_IMAGES
 
 
@@ -44,7 +43,7 @@ class SourcePage(QWizardPage):
         from boxes.models.media import InstallerMedia
         media = InstallerMedia(self.iso_edit.text())
         wizard = self.wizard()
-        if hasattr(wizard, 'os_combo'):
+        if wizard is not None and hasattr(wizard, 'os_combo'):
             idx = wizard.os_combo.findText(media.os_type.title(), Qt.MatchFlag.MatchContains)
             if idx >= 0:
                 wizard.os_combo.setCurrentIndex(idx)

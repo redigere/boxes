@@ -1,8 +1,8 @@
 from PyQt6.QtCore import Qt, QSize, QRect
-from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QBrush, QFontMetrics
+from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QBrush
 from PyQt6.QtWidgets import QStyledItemDelegate, QListView, QStyle, QAbstractItemView
 
-from boxes.models.machine import Machine, MachineState
+from boxes.models.machine import MachineState
 
 
 class IconViewDelegate(QStyledItemDelegate):
@@ -116,7 +116,7 @@ class CollectionView(QListView):
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setUniformItemSizes(True)
         self.setSpacing(4)
-        self.setIconMode()
+        self.set_icon_mode()
 
     def set_icon_mode(self) -> None:
         self.setViewMode(QListView.ViewMode.IconMode)

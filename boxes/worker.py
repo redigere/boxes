@@ -1,4 +1,4 @@
-from typing import Optional, Callable
+from typing import Callable, Optional
 from PyQt6.QtCore import QThread, pyqtSignal
 
 
@@ -6,7 +6,7 @@ class AsyncWorker(QThread):
     result_ready = pyqtSignal(object)
     error_occurred = pyqtSignal(str)
 
-    def __init__(self, target: Callable, args: tuple = (), kwargs: dict = None) -> None:
+    def __init__(self, target: Callable, args: tuple = (), kwargs: Optional[dict] = None) -> None:
         super().__init__()
         self._target = target
         self._args = args

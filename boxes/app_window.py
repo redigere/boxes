@@ -1,13 +1,13 @@
 from typing import Optional
 
-from PyQt6.QtCore import Qt, QSize, QTimer
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QStackedWidget,
-    QMenuBar, QStatusBar, QMessageBox, QSplitter,
+    QStatusBar, QMessageBox,
 )
 
-from boxes import __app_name__, __version__
+from boxes import __app_name__
 from boxes.models.collection import MachineCollection
 from boxes.models.machine import Machine, MachineState
 from boxes.ui.collection_view import CollectionView
@@ -49,28 +49,43 @@ class AppWindow(QMainWindow):
 
     def _setup_actions(self) -> None:
         menu = self.menuBar()
+        if menu is None:
+            return
         file_menu = menu.addMenu("&File")
-        file_menu.addAction("New VM...", self._on_new_vm, QKeySequence("Ctrl+N"))
-        file_menu.addSeparator()
-        file_menu.addAction("Quit", self.close, QKeySequence("Ctrl+Q"))
+        if file_menu:
+            act_new = QAction("New VM...", self)
+            act_new.setShortcut(QKeySequence("Ctrl+N"))
+            act_new.triggered.connect(self._on_new_vm)
+            file_menu.addAction(act_new)
+            file_menu.addSeparator()
+            act_quit = QAction("Quit", self)
+            act_quit.setShortcut(QKeySequence("Ctrl+Q"))
+            act_quit.triggered.connect(self.close)
+            file_menu.addAction(act_quit)
 
         vm_menu = menu.addMenu("&Virtual Machine")
-        vm_menu.addAction("Start", self._on_start)
-        vm_menu.addAction("Shutdown", self._on_shutdown)
-        vm_menu.addAction("Pause", self._on_pause)
-        vm_menu.addAction("Resume", self._on_resume)
-        vm_menu.addSeparator()
-        vm_menu.addAction("Preferences...", self._on_preferences)
-        vm_menu.addAction("Delete...", self._on_delete)
+        if vm_menu:
+            vm_menu.addAction("Start", self._on_start)
+            vm_menu.addAction("Shutdown", self._on_shutdown)
+            vm_menu.addAction("Pause", self._on_pause)
+            vm_menu.addAction("Resume", self._on_resume)
+            vm_menu.addSeparator()
+            vm_menu.addAction("Preferences...", self._on_preferences)
+            vm_menu.addAction("Delete...", self._on_delete)
 
         view_menu = menu.addMenu("&View")
-        view_menu.addAction("Icon View", lambda: self.collection_view.set_icon_mode())
-        view_menu.addAction("List View", lambda: self.collection_view.set_list_mode())
-        view_menu.addSeparator()
-        view_menu.addAction("Fullscreen", self._toggle_fullscreen, QKeySequence("F11"))
+        if view_menu:
+            view_menu.addAction("Icon View", lambda: self.collection_view.set_icon_mode())
+            view_menu.addAction("List View", lambda: self.collection_view.set_list_mode())
+            view_menu.addSeparator()
+            act_fs = QAction("Fullscreen", self)
+            act_fs.setShortcut(QKeySequence("F11"))
+            act_fs.triggered.connect(self._toggle_fullscreen)
+            view_menu.addAction(act_fs)
 
         help_menu = menu.addMenu("&Help")
-        help_menu.addAction("About Boxes", self._on_about)
+        if help_menu:
+            help_menu.addAction("About Boxes", self._on_about)
 
     def _setup_ui(self) -> None:
         central = QWidget()
@@ -125,7 +140,8 @@ class AppWindow(QMainWindow):
         while self.display_stack.count():
             w = self.display_stack.widget(0)
             self.display_stack.removeWidget(w)
-            w.deleteLater()
+            if w is not None:
+                w.deleteLater()
 
         display = DisplayWidget(machine)
         self.display_stack.addWidget(display)

@@ -1,9 +1,8 @@
 from typing import Optional
 import subprocess
-import json
 import re
 
-from boxes.backends import BaseBackend, BackendCapabilities
+from boxes.backends import BaseBackend
 from boxes.models.config import BoxConfig
 from boxes.models.machine import MachineState
 

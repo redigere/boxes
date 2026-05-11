@@ -1,9 +1,6 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QTabWidget,
-                             QWidget, QLabel, QSpinBox, QPushButton,
-                             QFormLayout, QGroupBox, QDialogButtonBox,
-                             QComboBox, QCheckBox, QLineEdit, QListWidget,
-                             QSlider)
+from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QTabWidget,
+                             QWidget, QSpinBox, QFormLayout, QDialogButtonBox,
+                             QComboBox, QLineEdit)
 
 from boxes.models.machine import Machine
 from boxes.models.config import BoxConfig
@@ -131,8 +128,12 @@ class PreferencesDialog(QDialog):
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
-        buttons.accepted.connect(lambda: (self.resources.save(), self.storage.save(),
-                                          self.network.save(), self.display.save(),
-                                          self.accept()))
+        def _on_accept() -> None:
+            self.resources.save()
+            self.storage.save()
+            self.network.save()
+            self.display.save()
+            self.accept()
+        buttons.accepted.connect(_on_accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
