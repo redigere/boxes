@@ -1,16 +1,12 @@
 import platform
 from pathlib import Path
-from enum import Enum
 from typing import Optional
 
 from PyQt6.QtCore import QObject, QTimer
 from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QApplication
 
-
-class ThemeMode(Enum):
-    LIGHT = "light"
-    DARK = "dark"
+from boxes.theme_mode import ThemeMode
 
 
 _LIGHT: dict[str, str] = {

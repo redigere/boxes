@@ -3,27 +3,9 @@ import subprocess
 import re
 
 from boxes.backends import BaseBackend
+from boxes.backends.ssh_config import SSHConfig
 from boxes.models.config import BoxConfig
 from boxes.models.machine import MachineState
-
-
-class SSHConfig:
-    def __init__(self, host: str, port: int = 22, user: str = "root", label: str = "") -> None:
-        self.host = host
-        self.port = port
-        self.user = user
-        self.label = label or host
-
-    @property
-    def uri(self) -> str:
-        return f"{self.user}@{self.host}:{self.port}"
-
-    def to_dict(self) -> dict:
-        return {"host": self.host, "port": self.port, "user": self.user, "label": self.label}
-
-    @classmethod
-    def from_dict(cls, d: dict) -> "SSHConfig":
-        return cls(d["host"], d.get("port", 22), d.get("user", "root"), d.get("label", ""))
 
 
 class SSHBackend(BaseBackend):

@@ -1,45 +1,6 @@
-from pathlib import Path
 from typing import Optional, Callable
-from urllib.request import urlopen, Request
-from urllib.error import URLError
-from PyQt6.QtCore import QThread, pyqtSignal
 
-
-class DownloadWorker(QThread):
-    progress = pyqtSignal(int, int)
-    finished = pyqtSignal(str)
-    error_signal = pyqtSignal(str)
-
-    def __init__(self, url: str, dest: str, user_agent: str = "Boxes/1.0") -> None:
-        super().__init__()
-        self.url = url
-        self.dest = dest
-        self.user_agent = user_agent
-        self._cancelled = False
-
-    def run(self) -> None:
-        try:
-            req = Request(self.url, headers={"User-Agent": self.user_agent})
-            response = urlopen(req, timeout=30)
-            total = int(response.headers.get("Content-Length", 0))
-            downloaded = 0
-            chunk = 8192
-            dest_path = Path(self.dest)
-            dest_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.dest, "wb") as f:
-                while data := response.read(chunk):
-                    if self._cancelled:
-                        return
-                    f.write(data)
-                    downloaded += len(data)
-                    if total > 0:
-                        self.progress.emit(downloaded, total)
-            self.finished.emit(self.dest)
-        except URLError as e:
-            self.error_signal.emit(str(e))
-
-    def cancel(self) -> None:
-        self._cancelled = True
+from boxes.services.download_worker import DownloadWorker
 
 
 class DownloadManager:
