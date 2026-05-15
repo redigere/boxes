@@ -142,6 +142,8 @@ def cmd_info(args: argparse.Namespace, core: BoxesCore) -> None:
         print(f"Arch:       {vm['arch']}")
         print(f"ISO:        {vm['iso']}")
         print(f"Graphics:   {vm['graphics']}")
+        if vm.get("display_address") and vm.get("display_port"):
+            print(f"Display:    {vm['display_address']}:{vm['display_port']}")
         print(f"CPU Model:  {vm['cpu_model']}")
         print(f"Firmware:   {vm['firmware']}")
         print(f"Network:    {vm['network']}")

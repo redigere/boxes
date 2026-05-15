@@ -21,13 +21,13 @@ rc = get_root_cause()
 def detect_backend() -> BaseBackend:
     for backend_name in BACKEND_PRIORITY:
         if backend_name == "type0" and check_type0_available():
-            from boxes.backends.type0_backend import Type0Backend
+            from boxes.backends.type0.type0_backend import Type0Backend
 
             bk: BaseBackend = Type0Backend()
             if bk.connect():
                 return bk
         if backend_name == "xen" and check_xen_available():
-            from boxes.backends.xen_backend import XenBackend
+            from boxes.backends.type0.xen_backend import XenBackend
 
             bk = XenBackend()
             if bk.connect():
@@ -42,22 +42,22 @@ def detect_backend() -> BaseBackend:
             except Exception as exc:
                 rc.diagnose(exc, "libvirt", "connect")
         if backend_name == "hyperv" and check_hyperv_available():
-            from boxes.backends.hyperv_backend import HyperVBackend
+            from boxes.backends.windows.hyperv_backend import HyperVBackend
 
             bk = HyperVBackend()
             if bk.connect():
                 return bk
         if backend_name == "macos" and check_macos_hvf_available():
-            from boxes.backends.macos_backend import MacOSBackend
+            from boxes.backends.windows.macos_backend import MacOSBackend
 
             bk = MacOSBackend()
             if bk.connect():
                 return bk
         if backend_name == "qemu" and find_qemu_binary():
-            from boxes.backends.qemu_backend import QEMUBackend
+            from boxes.backends.qemu.qemu_backend import QEMUBackend
 
             return QEMUBackend()
-    from boxes.backends.qemu_backend import QEMUBackend
+    from boxes.backends.qemu.qemu_backend import QEMUBackend
 
     return QEMUBackend()
 
@@ -224,6 +224,8 @@ class BoxesCore:
         if config is None:
             return None
         state = self.backend.get_state(config.uuid)
+        display_addr = self.backend.get_display_address(config.uuid)
+        display_port = self.backend.get_display_port(config.uuid)
         return {
             "uuid": config.uuid,
             "name": config.name,
@@ -241,6 +243,8 @@ class BoxesCore:
             "network": config.network,
             "autostart": config.autostart,
             "backend": self.backend_name,
+            "display_address": display_addr,
+            "display_port": display_port,
         }
 
     def backend_info(self) -> dict:

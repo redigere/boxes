@@ -1,2 +1,4 @@
-from boxes.services.shared_folder import SharedFolder as SharedFolder
-from boxes.services.shared_folders_manager import SharedFoldersManager as SharedFoldersManager
+from boxes.services.shared.shared_folders import SharedFolder as SharedFolder
+from boxes.services.shared.shared_folders import SharedFoldersManager as SharedFoldersManager
+
+__all__ = ["SharedFolder", "SharedFoldersManager"]

@@ -30,6 +30,7 @@ classifiers = [
 requires-python = ">=3.11"
 dependencies = [
     "PyQt6>=6.5",
+    "podman-py>=5",
 ]
 optional-dependencies.dev = [
     "pre-commit>=3",
@@ -54,7 +55,7 @@ boxes = "boxes.app:main"
 include = ["boxes*"]
 
 [tool.setuptools.package-data]
-boxes = ["resources/*"]
+boxes = ["resources/**/*"]
 
 [tool.setuptools.data-files]
 
