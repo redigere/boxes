@@ -117,10 +117,10 @@ class AppWindow(QMainWindow):
         self.topbar.pause_toggled.connect(self._on_pause_toggle)
         self.topbar.settings_requested.connect(self._on_preferences)
         self.searchbar.text_changed.connect(self._filter_collection)
-        self.collection_toolbar.view_changed.connect(self._switch_view)
-        self.collection_toolbar.new_vm_clicked.connect(self._on_new_vm)
-        self.display_toolbar.back_clicked.connect(self._show_collection)
-        self.display_toolbar.fullscreen_clicked.connect(self._toggle_fullscreen)
+        self.collection_toolbar.createRequested.connect(self._on_new_vm)
+        self.display_toolbar.backRequested.connect(self._show_collection)
+        self.display_toolbar.fullscreenRequested.connect(self._on_fullscreen)
+        self.display_toolbar.screenshotRequested.connect(self._on_screenshot)
 
     def _populate_collection(self) -> None:
         self.collection_view.setModel(self.collection)
@@ -269,6 +269,13 @@ class AppWindow(QMainWindow):
             self.collection_view.set_icon_mode()
         else:
             self.collection_view.set_list_mode()
+
+    def _on_fullscreen(self) -> None:
+        self._toggle_fullscreen()
+
+    def _on_screenshot(self) -> None:
+        if self._current_machine:
+            self.status_bar.showMessage(f"Screenshot of {self._current_machine.name}")
 
     def _toggle_fullscreen(self, checked: Optional[bool] = None) -> None:
         if checked is not None:

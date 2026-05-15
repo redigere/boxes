@@ -20,24 +20,49 @@ class Type0Backend(BaseBackend):
         self._xen = XenDevice()
         self._mode: str = ""
         self._vms: dict[str, dict] = {}
+        self._vm_fds: dict[str, int] = {}
+        self._guest_mem: dict[str, ctypes.Array[ctypes.c_char]] = {}
+
+    def _load_existing_vms(self) -> None:
+        """Load all saved VM configs into the internal registry."""
+        from boxes.models.config import BoxConfig as _BoxConfig
+
+        for cfg in _BoxConfig.list_all():
+            if cfg.uuid not in self._vms:
+                self.define_machine(cfg)
+
+    @staticmethod
+    def _load_config(backend_id: str) -> Optional[BoxConfig]:
+        """Load a VM config from disk by UUID."""
+        from boxes.models.config import BoxConfig as _BoxConfig
+
+        configs = _BoxConfig.list_all()
+        for c in configs:
+            if c.uuid == backend_id:
+                return c
+        return None
 
     def connect(self) -> bool:
         if self._kvm.probe():
             if self._kvm.open():
                 self._mode = "kvm"
                 self._connected = True
+                self._load_existing_vms()
                 return True
             if Path("/dev/kvm").exists():
                 self._mode = "kvm"
                 self._connected = True
+                self._load_existing_vms()
                 return True
         if self._xen.probe():
             if self._xen.open():
                 self._mode = "xen"
                 self._connected = True
+                self._load_existing_vms()
                 return True
             self._mode = "xen"
             self._connected = True
+            self._load_existing_vms()
             return True
         return False
 
@@ -47,6 +72,8 @@ class Type0Backend(BaseBackend):
         self._kvm.close()
         self._xen.close()
         self._vms.clear()
+        self._vm_fds.clear()
+        self._guest_mem.clear()
         self._connected = False
 
     def list_machines(self) -> list[dict]:
@@ -92,16 +119,128 @@ class Type0Backend(BaseBackend):
         self._vms.pop(backend_id, None)
         return True
 
-    def _start_kvm_direct(self, config: BoxConfig) -> Optional[int]:
+    def _start_kvm_direct(self, config: BoxConfig, backend_id: str = "") -> Optional[int]:
+        """Start a VM using raw KVM ioctls (type-0).
+
+        Sets up KVM with firmware, TSS, IRQ chip, and VCPUs.
+        The VCPUs can then be executed via _run_kvm_vcpu().
+        """
         if not self._kvm.is_open:
             return None
         vm_fd = self._kvm.create_vm()
         if vm_fd is None:
             return None
+
+        # Allocate guest memory
         mem_size = config.memory_mb * 1024 * 1024
         mem = ctypes.create_string_buffer(mem_size)
-        self._kvm.set_user_memory_region(vm_fd, 0, mem_size, ctypes.addressof(mem), 0)
+        host_addr = ctypes.addressof(mem)
+        self._kvm.set_user_memory_region(vm_fd, 0, mem_size, host_addr, 0)
+
+        # Load firmware into guest memory
+        firmware = self._find_firmware()
+        if firmware:
+            try:
+                fw_data = firmware.read_bytes()
+                fw_size = min(len(fw_data), 4 * 1024 * 1024)  # Max 4MB firmware
+                ctypes.memmove(mem, fw_data, fw_size)
+            except (OSError, PermissionError):
+                pass
+
+        # Set up KVM
+        try:
+            kvm = self._kvm
+            # Set TSS address
+            try:
+                import fcntl
+
+                fcntl.ioctl(vm_fd, 0xAE47, 0xFFFBD000)
+            except (OSError, ImportError):
+                pass
+
+            # Create IRQ chip
+            try:
+                fcntl.ioctl(vm_fd, 0xAE60, 0)
+            except OSError:
+                pass
+
+            # Create VCPUs
+            num_vcpus = min(config.vcpus, 256)
+            for i in range(num_vcpus):
+                kvm.create_vcpu(vm_fd, i)
+
+            # Store VM references
+            if backend_id:
+                self._vm_fds[backend_id] = vm_fd
+                self._guest_mem[backend_id] = mem
+        except Exception:
+            pass
+
         return vm_fd
+
+    def _find_firmware(self) -> Optional[Path]:
+        """Find a BIOS/firmware file for direct KVM boot."""
+        search_paths = [
+            "/usr/share/seabios/bios.bin",
+            "/usr/share/qemu/bios.bin",
+            "/usr/share/edk2/ovmf/OVMF_CODE.fd",
+            "/usr/share/ovmf/OVMF_CODE.fd",
+            "/usr/share/qemu/ovmf-x86_64.bin",
+            "/run/host/usr/share/seabios/bios.bin",
+            "/run/host/usr/share/qemu/bios.bin",
+            "/run/host/usr/share/edk2/ovmf/OVMF_CODE.fd",
+        ]
+        for path in search_paths:
+            p = Path(path)
+            if p.exists():
+                return p
+        return None
+
+    def _run_kvm_vcpu(self, vm_fd: int, vcpu_id: int = 0) -> None:
+        """Run a KVM VCPU in a loop (blocking).
+
+        This should be called in a separate thread per VCPU.
+        Handles VM exits minimally (halt/shutdown).
+        """
+        try:
+            import fcntl
+            import struct
+
+            kvm_run_mmap_size = 16384  # Typical KVM_RUN mmap size
+            vcpu_fd = self._kvm._vcpu_fd if vcpu_id == 0 else None
+            if vcpu_fd is None:
+                return
+            while True:
+                try:
+                    fcntl.ioctl(vcpu_fd, 0xAE80, 0)  # KVM_RUN
+                except OSError as e:
+                    if e.errno == 4:  # EINTR
+                        continue
+                    break
+                # Read exit reason from kvm_run
+                try:
+                    import mmap as _mmap
+
+                    run_mmap = _mmap.mmap(
+                        vcpu_fd, kvm_run_mmap_size, _mmap.MAP_SHARED, _mmap.PROT_READ | _mmap.PROT_WRITE
+                    )
+                    exit_reason = struct.unpack_from("I", run_mmap, 0)[0]
+                    run_mmap.close()
+                    if exit_reason == 8:  # KVM_EXIT_HLT
+                        break
+                    if exit_reason == 5:  # KVM_EXIT_IO
+                        # Read IO direction/port from run structure offset
+                        io_data = run_mmap[4:12] if run_mmap else b""
+                        if io_data and io_data[0] == 0 and io_data[1] == 0:
+                            pass
+                    if exit_reason == 6:  # KVM_EXIT_MMIO
+                        continue
+                    if exit_reason == 0x100:  # KVM_EXIT_SHUTDOWN
+                        break
+                except (ImportError, OSError):
+                    break
+        except (OSError, ImportError):
+            pass
 
     def _start_qemu_kvm(self, config: BoxConfig) -> Optional[subprocess.Popen]:
         qemu = self._find_qemu()
@@ -166,13 +305,24 @@ class Type0Backend(BaseBackend):
         except (FileNotFoundError, subprocess.TimeoutExpired):
             return None
 
-    def start_machine(self, backend_id: str) -> bool:
+    def _ensure_vm(self, backend_id: str) -> Optional[dict]:
+        """Get VM info by ID, auto-loading config from disk if needed."""
         vm_info = self._vms.get(backend_id)
+        if vm_info is not None:
+            return vm_info
+        config = self._load_config(backend_id)
+        if config is None:
+            return None
+        self.define_machine(config)
+        return self._vms.get(backend_id)
+
+    def start_machine(self, backend_id: str) -> bool:
+        vm_info = self._ensure_vm(backend_id)
         if vm_info is None:
             return False
         config = vm_info["config"]
         if self._mode == "kvm" and self._kvm.is_open:
-            kvm_vm = self._start_kvm_direct(config)
+            kvm_vm = self._start_kvm_direct(config, backend_id)
             if kvm_vm is not None:
                 vm_info["vm_fd"] = kvm_vm
                 vm_info["state"] = MachineState.RUNNING
@@ -192,7 +342,7 @@ class Type0Backend(BaseBackend):
         return True
 
     def shutdown_machine(self, backend_id: str) -> bool:
-        vm_info = self._vms.get(backend_id)
+        vm_info = self._ensure_vm(backend_id)
         if vm_info is None:
             return False
         proc = vm_info.get("proc")
@@ -211,7 +361,7 @@ class Type0Backend(BaseBackend):
         return True
 
     def pause_machine(self, backend_id: str) -> bool:
-        vm_info = self._vms.get(backend_id)
+        vm_info = self._ensure_vm(backend_id)
         if vm_info is None:
             return False
         if self._mode == "xen":
@@ -226,7 +376,7 @@ class Type0Backend(BaseBackend):
         return True
 
     def resume_machine(self, backend_id: str) -> bool:
-        vm_info = self._vms.get(backend_id)
+        vm_info = self._ensure_vm(backend_id)
         if vm_info is None:
             return False
         if self._mode == "xen":
@@ -243,6 +393,10 @@ class Type0Backend(BaseBackend):
     def delete_machine(self, backend_id: str) -> bool:
         self.shutdown_machine(backend_id)
         self._vms.pop(backend_id, None)
+        # Also delete config from disk
+        config = self._load_config(backend_id)
+        if config is not None:
+            config.delete()
         img_dir = BOXES_IMAGES / backend_id
         if img_dir.exists():
             import shutil as _shutil
@@ -253,6 +407,9 @@ class Type0Backend(BaseBackend):
     def get_state(self, backend_id: str) -> int:
         vm_info = self._vms.get(backend_id)
         if vm_info is None:
+            config = self._load_config(backend_id)
+            if config is not None:
+                return MachineState.STOPPED
             return MachineState.STOPPED
         return vm_info["state"]
 

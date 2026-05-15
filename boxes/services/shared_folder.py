@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 class SharedFolder:
     host_path: str = ""
     guest_path: str = ""
-    readonly: bool = False
+    enabled: bool = True
+    read_only: bool = False
     name: str = ""
     options: dict[str, str] = field(default_factory=dict)

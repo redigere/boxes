@@ -1,6 +1,8 @@
+from typing import Optional
+
 from PyQt6.QtWidgets import QStyledItemDelegate, QStyle
 from PyQt6.QtCore import QRect, Qt, QModelIndex, QSize, QPoint
-from PyQt6.QtGui import QPainter, QColor
+from PyQt6.QtGui import QPainter, QColor, QPolygon
 
 
 class IconViewDelegate(QStyledItemDelegate):
@@ -8,7 +10,9 @@ class IconViewDelegate(QStyledItemDelegate):
         super().__init__(parent)
         self.icon_size = 64
 
-    def paint(self, painter: QPainter, option, index: QModelIndex) -> None:
+    def paint(self, painter: Optional[QPainter], option, index: QModelIndex) -> None:
+        if painter is None:
+            return
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         rect = option.rect
@@ -34,7 +38,12 @@ class IconViewDelegate(QStyledItemDelegate):
         painter.drawRoundedRect(icon_rect, 8, 8)
 
         if state == 1:
-            triangle = [icon_rect.center() + QPoint(-6, -4), icon_rect.center() + QPoint(-6, 4), icon_rect.center() + QPoint(4, 0)]
+            c = icon_rect.center()
+            triangle = QPolygon([
+                c + QPoint(-6, -4),
+                c + QPoint(-6, 4),
+                c + QPoint(4, 0),
+            ])
             painter.setBrush(QColor("#ffffff"))
             painter.drawPolygon(triangle)
 
