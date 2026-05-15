@@ -7,18 +7,18 @@ class OSDatabase:
 
     def _build(self) -> dict:
         return {
-            "fedora":      {"name": "Fedora Workstation",     "ram": 2048, "disk": 15, "arch": "x86_64"},
-            "ubuntu":      {"name": "Ubuntu Desktop",         "ram": 2048, "disk": 25, "arch": "x86_64"},
-            "debian":      {"name": "Debian",                 "ram": 1024, "disk": 10, "arch": "x86_64"},
-            "centos":      {"name": "CentOS Stream",          "ram": 2048, "disk": 20, "arch": "x86_64"},
-            "rhel":        {"name": "Red Hat Enterprise Linux","ram": 2048, "disk": 20, "arch": "x86_64"},
-            "windows":     {"name": "Microsoft Windows",      "ram": 4096, "disk": 64, "arch": "x86_64"},
-            "arch":        {"name": "Arch Linux",             "ram": 1024, "disk": 8,  "arch": "x86_64"},
-            "opensuse":    {"name": "OpenSUSE",               "ram": 2048, "disk": 20, "arch": "x86_64"},
-            "almalinux":   {"name": "AlmaLinux",              "ram": 2048, "disk": 20, "arch": "x86_64"},
-            "rockylinux":  {"name": "Rocky Linux",            "ram": 2048, "disk": 20, "arch": "x86_64"},
-            "freebsd":     {"name": "FreeBSD",                "ram": 1024, "disk": 8,  "arch": "x86_64"},
-            "generic":     {"name": "Generic",                "ram": 1024, "disk": 10, "arch": "x86_64"},
+            "fedora": {"name": "Fedora Workstation", "ram": 2048, "disk": 15, "arch": "x86_64"},
+            "ubuntu": {"name": "Ubuntu Desktop", "ram": 2048, "disk": 25, "arch": "x86_64"},
+            "debian": {"name": "Debian", "ram": 1024, "disk": 10, "arch": "x86_64"},
+            "centos": {"name": "CentOS Stream", "ram": 2048, "disk": 20, "arch": "x86_64"},
+            "rhel": {"name": "Red Hat Enterprise Linux", "ram": 2048, "disk": 20, "arch": "x86_64"},
+            "windows": {"name": "Microsoft Windows", "ram": 4096, "disk": 64, "arch": "x86_64"},
+            "arch": {"name": "Arch Linux", "ram": 1024, "disk": 8, "arch": "x86_64"},
+            "opensuse": {"name": "OpenSUSE", "ram": 2048, "disk": 20, "arch": "x86_64"},
+            "almalinux": {"name": "AlmaLinux", "ram": 2048, "disk": 20, "arch": "x86_64"},
+            "rockylinux": {"name": "Rocky Linux", "ram": 2048, "disk": 20, "arch": "x86_64"},
+            "freebsd": {"name": "FreeBSD", "ram": 1024, "disk": 8, "arch": "x86_64"},
+            "generic": {"name": "Generic", "ram": 1024, "disk": 10, "arch": "x86_64"},
         }
 
     def get(self, os_id: str) -> Optional[dict]:

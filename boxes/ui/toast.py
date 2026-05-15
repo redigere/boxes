@@ -5,7 +5,9 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QPushButton, QVBoxLayo
 class ToastWidget(QWidget):
     dismissed = pyqtSignal()
 
-    def __init__(self, message: str, action: str = "", duration_ms: int = 5000, parent=None) -> None:
+    def __init__(
+        self, message: str, action: str = "", duration_ms: int = 5000, parent=None
+    ) -> None:
         super().__init__(parent)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(12, 6, 8, 6)

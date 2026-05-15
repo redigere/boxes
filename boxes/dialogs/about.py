@@ -15,6 +15,7 @@ class AboutDialog(QDialog):
         layout.addWidget(title)
 
         from boxes import __version__
+
         version = QLabel(f"<b>Version {__version__}</b>")
         version.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(version)

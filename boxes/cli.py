@@ -8,9 +8,11 @@ from boxes.core import BoxesCore
 def _print_vm(vm: dict) -> None:
     state_color = {"Running": "32", "Paused": "33", "Off": "90", "Sleeping": "34", "Crashed": "91"}
     code = state_color.get(vm["state"], "0")
-    print(f"  \033[{code}m{vm['state']:>8}\033[0m  {vm['name']:<30}  "
-          f"{vm['memory_mb']:>5} MB  {vm['vcpus']} vCPU  {vm['disk_gb']:>3} GB  "
-          f"{vm['os_type']:<12}")
+    print(
+        f"  \033[{code}m{vm['state']:>8}\033[0m  {vm['name']:<30}  "
+        f"{vm['memory_mb']:>5} MB  {vm['vcpus']} vCPU  {vm['disk_gb']:>3} GB  "
+        f"{vm['os_type']:<12}"
+    )
 
 
 def cmd_list(args: argparse.Namespace, core: BoxesCore) -> None:
@@ -36,6 +38,7 @@ def cmd_create(args: argparse.Namespace, core: BoxesCore) -> None:
 
     if args.os:
         from boxes.models.media import InstallerMedia
+
         media = InstallerMedia(args.iso or "")
         detected = media.os_type
         os_type = args.os if args.os != "auto" else detected
@@ -99,6 +102,13 @@ def cmd_delete(args: argparse.Namespace, core: BoxesCore) -> None:
         sys.exit(1)
 
 
+def cmd_diagnose(args: argparse.Namespace, core: BoxesCore) -> None:
+    from boxes.diagnostics import get_root_cause
+
+    rc = get_root_cause()
+    print(rc.summary())
+
+
 def cmd_info(args: argparse.Namespace, core: BoxesCore) -> None:
     if args.name:
         vm = core.vm_info(args.name)
@@ -125,8 +135,14 @@ def cmd_info(args: argparse.Namespace, core: BoxesCore) -> None:
         print(f"Backend:    {bi['backend']}")
         print(f"Connected:  {bi['connected']}")
         print("Capabilities:")
-        for cap in ["snapshots", "usb_redirection", "shared_folders",
-                     "live_migration", "storage_pools", "networks"]:
+        for cap in [
+            "snapshots",
+            "usb_redirection",
+            "shared_folders",
+            "live_migration",
+            "storage_pools",
+            "networks",
+        ]:
             print(f"  {cap}: {bi[cap]}")
         vms = core.list_vms()
         if vms:
@@ -154,8 +170,7 @@ def main() -> int:
     p_create.add_argument("--vcpus", type=int, default=2)
     p_create.add_argument("--disk", type=int, default=20)
     p_create.add_argument("--iso")
-    p_create.add_argument("--os", default="auto",
-                          help="OS type or 'auto' to detect from ISO")
+    p_create.add_argument("--os", default="auto", help="OS type or 'auto' to detect from ISO")
     p_create.add_argument("--graphics", default="spice", choices=["spice", "vnc"])
 
     for cmd_name in ("start", "stop", "pause", "resume"):
@@ -164,8 +179,9 @@ def main() -> int:
 
     p_delete = sub.add_parser("delete", help="Delete a VM")
     p_delete.add_argument("name")
-    p_delete.add_argument("-f", "--force", action="store_true",
-                          help="Skip confirmation")
+    p_delete.add_argument("-f", "--force", action="store_true", help="Skip confirmation")
+
+    sub.add_parser("diagnose", help="Show diagnostic info and root cause analysis")
 
     p_info = sub.add_parser("info", help="Show VM or backend info")
     p_info.add_argument("name", nargs="?")
@@ -174,6 +190,7 @@ def main() -> int:
 
     if args.desktop:
         from boxes.app import gui_main
+
         return gui_main()
 
     core = BoxesCore()
@@ -192,6 +209,8 @@ def main() -> int:
         cmd_resume(args, core)
     elif args.command == "delete":
         cmd_delete(args, core)
+    elif args.command == "diagnose":
+        cmd_diagnose(args, core)
     elif args.command == "info":
         cmd_info(args, core)
     else:

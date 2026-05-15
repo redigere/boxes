@@ -74,8 +74,11 @@ class DisplayWidget(QWidget):
     def paintEvent(self, event) -> None:
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        scaled = self._frame.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio,
-                                    Qt.TransformationMode.SmoothTransformation)
+        scaled = self._frame.scaled(
+            self.size(),
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
         x = (self.width() - scaled.width()) // 2
         y = (self.height() - scaled.height()) // 2
         painter.drawImage(x, y, scaled)

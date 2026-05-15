@@ -25,9 +25,9 @@ class SharedFoldersManager:
 
     def _save(self) -> None:
         BOXES_CONFIG.mkdir(parents=True, exist_ok=True)
-        self._config_path.write_text(json.dumps(
-            {"folders": [asdict(f) for f in self._folders]}, indent=2
-        ))
+        self._config_path.write_text(
+            json.dumps({"folders": [asdict(f) for f in self._folders]}, indent=2)
+        )
 
     def add(self, host_path: str, guest_path: str, read_only: bool = False) -> None:
         self._folders.append(SharedFolder(host_path, guest_path, read_only=read_only))

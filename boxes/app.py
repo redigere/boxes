@@ -58,4 +58,5 @@ def gui_main() -> int:
 
 def main() -> int:
     from boxes.cli import main as cli_main
+
     return cli_main()

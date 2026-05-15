@@ -7,20 +7,43 @@ from boxes.models.config import BoxConfig
 from boxes.models.machine import MachineState
 
 
+class SSHConfig:
+    def __init__(self, host: str, port: int = 22, user: str = "root", label: str = "") -> None:
+        self.host = host
+        self.port = port
+        self.user = user
+        self.label = label or host
+
+    @property
+    def uri(self) -> str:
+        return f"{self.user}@{self.host}:{self.port}"
+
+    def to_dict(self) -> dict:
+        return {"host": self.host, "port": self.port, "user": self.user, "label": self.label}
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "SSHConfig":
+        return cls(d["host"], d.get("port", 22), d.get("user", "root"), d.get("label", ""))
+
+
 class SSHBackend(BaseBackend):
-    def __init__(self, host: str, port: int = 22, user: str = "root") -> None:
+    def __init__(self, host: str = "", port: int = 22, user: str = "root") -> None:
         super().__init__()
         self.host = host
         self.port = port
         self.user = user
         self.capabilities.snapshots = True
         self._connected = False
+        self._hosts: list[SSHConfig] = []
+        self._timeout = 15
 
     def _ssh(self, cmd: str) -> Optional[str]:
         try:
             result = subprocess.run(
                 ["ssh", "-p", str(self.port), f"{self.user}@{self.host}", cmd],
-                capture_output=True, text=True, timeout=10
+                capture_output=True,
+                text=True,
+                timeout=self._timeout,
             )
             if result.returncode == 0:
                 return result.stdout.strip()
@@ -33,6 +56,12 @@ class SSHBackend(BaseBackend):
         self._connected = result is not None
         return self._connected
 
+    def connect_to(self, host: str, port: int = 22, user: str = "root") -> bool:
+        self.host = host
+        self.port = port
+        self.user = user
+        return self.connect()
+
     def disconnect(self) -> None:
         self._connected = False
 
@@ -43,17 +72,37 @@ class SSHBackend(BaseBackend):
     def list_machines(self) -> list[dict]:
         out = self._ssh("virsh list --all --uuid --name --state")
         if out is None:
-            return []
+            return self._migrate_list()
         results = []
         for line in out.split("\n"):
             parts = line.strip().split()
             if len(parts) >= 3:
-                results.append({
-                    "uuid": parts[0],
-                    "name": parts[1],
-                    "state": 1 if parts[2] == "running" else 0,
-                    "active": parts[2] == "running",
-                })
+                results.append(
+                    {
+                        "uuid": parts[0],
+                        "name": parts[1],
+                        "state": 1 if parts[2] == "running" else 0,
+                        "active": parts[2] == "running",
+                    }
+                )
+        return results
+
+    def _migrate_list(self) -> list[dict]:
+        out = self._ssh("virsh list --all")
+        if out is None:
+            return []
+        results = []
+        for line in out.split("\n"):
+            parts = line.strip().split()
+            if len(parts) >= 5 and parts[0].isdigit():
+                results.append(
+                    {
+                        "uuid": parts[0],
+                        "name": parts[1],
+                        "state": 1 if parts[2] == "running" else 0,
+                        "active": parts[2] == "running",
+                    }
+                )
         return results
 
     def define_machine(self, config: BoxConfig) -> Optional[str]:
@@ -115,3 +164,56 @@ class SSHBackend(BaseBackend):
         if match:
             return int(match.group(1))
         return None
+
+    def get_host_info(self) -> Optional[dict]:
+        info = self._ssh("virsh nodeinfo")
+        if info is None:
+            return None
+        result: dict[str, str] = {}
+        for line in info.split("\n"):
+            if ":" in line:
+                k, v = line.split(":", 1)
+                result[k.strip().lower().replace(" ", "_")] = v.strip()
+        return result
+
+    def list_storage_pools(self) -> list[dict]:
+        out = self._ssh("virsh pool-list --all --details")
+        if out is None:
+            return []
+        results = []
+        for line in out.split("\n"):
+            parts = line.strip().split()
+            if len(parts) >= 4 and parts[0] not in ("Name", "-----"):
+                results.append(
+                    {
+                        "name": parts[0],
+                        "state": parts[1],
+                        "autostart": parts[2],
+                        "capacity": parts[3],
+                    }
+                )
+        return results
+
+    def list_networks(self) -> list[dict]:
+        out = self._ssh("virsh net-list --all")
+        if out is None:
+            return []
+        results = []
+        for line in out.split("\n"):
+            parts = line.strip().split()
+            if len(parts) >= 3 and parts[0] not in ("Name", "-----"):
+                results.append({"name": parts[0], "state": parts[1], "autostart": parts[2]})
+        return results
+
+    def reboot_machine(self, backend_id: str) -> bool:
+        result = self._ssh(f"virsh reboot {backend_id}")
+        return result is not None
+
+    def reset_machine(self, backend_id: str) -> bool:
+        result = self._ssh(f"virsh reset {backend_id}")
+        return result is not None
+
+    def set_autostart(self, backend_id: str, enabled: bool) -> bool:
+        flag = "--enable" if enabled else "--disable"
+        result = self._ssh(f"virsh autostart {backend_id} {flag}")
+        return result is not None

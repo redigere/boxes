@@ -3,8 +3,12 @@ from typing import Optional
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QStackedWidget,
-    QStatusBar, QMessageBox,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QStackedWidget,
+    QStatusBar,
+    QMessageBox,
 )
 
 from boxes import __app_name__
@@ -226,7 +230,8 @@ class AppWindow(QMainWindow):
             return
         machine = self._current_machine
         reply = QMessageBox.question(
-            self, "Delete VM",
+            self,
+            "Delete VM",
             f"Delete '{machine.name}' and all its storage?\nThis cannot be undone.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )

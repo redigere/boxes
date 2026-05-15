@@ -23,8 +23,14 @@ def detect_host_arch() -> str:
     try:
         result = subprocess.run(["uname", "-m"], capture_output=True, text=True)
         arch = result.stdout.strip()
-        mapping = {"x86_64": "x86_64", "aarch64": "aarch64", "arm64": "aarch64",
-                   "i386": "i386", "i686": "i386", "amd64": "x86_64"}
+        mapping = {
+            "x86_64": "x86_64",
+            "aarch64": "aarch64",
+            "arm64": "aarch64",
+            "i386": "i386",
+            "i686": "i386",
+            "amd64": "x86_64",
+        }
         return mapping.get(arch, "x86_64")
     except FileNotFoundError:
         return "x86_64"
@@ -58,9 +64,15 @@ def check_hyperv_available() -> bool:
         return False
     try:
         result = subprocess.run(
-            ["powershell.exe", "-NoProfile", "-Command",
-             "Get-Command Get-VM -ErrorAction SilentlyContinue"],
-            capture_output=True, text=True, timeout=10
+            [
+                "powershell.exe",
+                "-NoProfile",
+                "-Command",
+                "Get-Command Get-VM -ErrorAction SilentlyContinue",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         return result.returncode == 0 and "Get-VM" in (result.stdout or "")
     except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -72,8 +84,7 @@ def check_macos_hvf_available() -> bool:
         return False
     try:
         result = subprocess.run(
-            ["sysctl", "-n", "kern.hv_support"],
-            capture_output=True, text=True, timeout=5
+            ["sysctl", "-n", "kern.hv_support"], capture_output=True, text=True, timeout=5
         )
         if result.returncode == 0 and result.stdout.strip() == "1":
             return True
@@ -81,6 +92,7 @@ def check_macos_hvf_available() -> bool:
         pass
     try:
         import ctypes
+
         lib = ctypes.CDLL("/System/Library/Frameworks/Hypervisor.framework/Hypervisor")
         return lib is not None
     except (OSError, AttributeError):
@@ -110,4 +122,4 @@ def human_size(bytes_val: int) -> str:
 
 
 def truncate_text(text: str, max_len: int = 60) -> str:
-    return text[:max_len - 3] + "..." if len(text) > max_len else text
+    return text[: max_len - 3] + "..." if len(text) > max_len else text

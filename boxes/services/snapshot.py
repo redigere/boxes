@@ -29,12 +29,11 @@ class SnapshotManager:
     def _save(self) -> None:
         self._snapshots_dir.mkdir(parents=True, exist_ok=True)
         index = self._snapshots_dir / "index.json"
-        index.write_text(json.dumps(
-            {"snapshots": [asdict(s) for s in self._snapshots]}, indent=2
-        ))
+        index.write_text(json.dumps({"snapshots": [asdict(s) for s in self._snapshots]}, indent=2))
 
     def create(self, name: str, description: str = "") -> Snapshot:
         from datetime import datetime
+
         snap = Snapshot(name=name, timestamp=datetime.now().isoformat(), description=description)
         self._snapshots.append(snap)
         self._save()

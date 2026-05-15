@@ -30,8 +30,7 @@ class XenBackend(BaseBackend):
             return False
         try:
             result = subprocess.run(
-                [self._xl_path, "info"],
-                capture_output=True, text=True, timeout=5
+                [self._xl_path, "info"], capture_output=True, text=True, timeout=5
             )
             if result.returncode != 0:
                 self._connected = False
@@ -54,8 +53,7 @@ class XenBackend(BaseBackend):
             return None
         try:
             result = subprocess.run(
-                [self._xl_path] + cmd.split(),
-                capture_output=True, text=True, timeout=30
+                [self._xl_path] + cmd.split(), capture_output=True, text=True, timeout=30
             )
             if result.returncode == 0:
                 return result.stdout.strip()
@@ -69,19 +67,22 @@ class XenBackend(BaseBackend):
             return []
         results = []
         import json as _json
+
         try:
             entries = _json.loads(out) if out.startswith("[") else [_json.loads(out)]
             for entry in entries if isinstance(entries, list) else [entries]:
                 domid = entry.get("domid", -1)
-                results.append({
-                    "name": entry.get("name", "unknown"),
-                    "uuid": entry.get("uuid", ""),
-                    "state": 1 if domid >= 0 else 0,
-                    "max_mem": entry.get("memory", {}).get("current", 0),
-                    "vcpus": len(entry.get("vcpus", [])),
-                    "id": domid,
-                    "active": domid >= 0,
-                })
+                results.append(
+                    {
+                        "name": entry.get("name", "unknown"),
+                        "uuid": entry.get("uuid", ""),
+                        "state": 1 if domid >= 0 else 0,
+                        "max_mem": entry.get("memory", {}).get("current", 0),
+                        "vcpus": len(entry.get("vcpus", [])),
+                        "id": domid,
+                        "active": domid >= 0,
+                    }
+                )
         except (_json.JSONDecodeError, ValueError):
             pass
         return results
@@ -142,8 +143,7 @@ class XenBackend(BaseBackend):
 
     def create_disk_image(self, path: str, size_gb: int) -> bool:
         result = subprocess.run(
-            ["qemu-img", "create", "-f", "qcow2", path, f"{size_gb}G"],
-            capture_output=True
+            ["qemu-img", "create", "-f", "qcow2", path, f"{size_gb}G"], capture_output=True
         )
         return result.returncode == 0
 
@@ -155,6 +155,7 @@ class XenBackend(BaseBackend):
         if out is None:
             return None
         import re as _re
+
         match = _re.search(r"vncdisplay.*?(\d+)", out)
         if match:
             return 5900 + int(match.group(1))

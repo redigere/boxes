@@ -1,7 +1,18 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout,
-                             QLabel, QLineEdit, QSpinBox, QPushButton,
-                             QFileDialog, QComboBox, QFormLayout, QCheckBox)
+from PyQt6.QtWidgets import (
+    QWizard,
+    QWizardPage,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QSpinBox,
+    QPushButton,
+    QFileDialog,
+    QComboBox,
+    QFormLayout,
+    QCheckBox,
+)
 
 from boxes.models.config import BoxConfig
 from boxes.models.osdb import OSDatabase
@@ -41,9 +52,10 @@ class SourcePage(QWizardPage):
 
     def _detect(self) -> None:
         from boxes.models.media import InstallerMedia
+
         media = InstallerMedia(self.iso_edit.text())
         wizard = self.wizard()
-        if wizard is not None and hasattr(wizard, 'os_combo'):
+        if wizard is not None and hasattr(wizard, "os_combo"):
             idx = wizard.os_combo.findText(media.os_type.title(), Qt.MatchFlag.MatchContains)
             if idx >= 0:
                 wizard.os_combo.setCurrentIndex(idx)
@@ -104,6 +116,7 @@ class ConfigPage(QWizardPage):
         iso = self.field("iso")
         if iso:
             from boxes.models.media import InstallerMedia
+
             media = InstallerMedia(str(iso))
             os_db = OSDatabase()
             info = os_db.suggest(media.os_type)

@@ -93,6 +93,7 @@ class MacOSBackend(BaseBackend):
 
     def _get_display_port(self) -> int:
         import socket as _socket
+
         with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as s:
             s.bind(("", 0))
             return s.getsockname()[1]
@@ -106,19 +107,31 @@ class MacOSBackend(BaseBackend):
         display_port = self._get_display_port()
         cmd = [
             binary,
-            "-name", config.name,
-            "-machine", f"type={config.machine_type},accel=hvf:tcg",
-            "-cpu", "host",
-            "-m", str(config.memory_mb),
-            "-smp", str(config.vcpus),
-            "-drive", f"file={config.disk_path},format=qcow2,if=virtio",
-            "-netdev", "vmnet-modeswitch,id=net0",
-            "-device", "virtio-net-pci,netdev=net0",
-            "-vnc", f"127.0.0.1:{display_port}",
-            "-vga", "virtio",
-            "-display", "default,show-cursor=on",
+            "-name",
+            config.name,
+            "-machine",
+            f"type={config.machine_type},accel=hvf:tcg",
+            "-cpu",
+            "host",
+            "-m",
+            str(config.memory_mb),
+            "-smp",
+            str(config.vcpus),
+            "-drive",
+            f"file={config.disk_path},format=qcow2,if=virtio",
+            "-netdev",
+            "vmnet-modeswitch,id=net0",
+            "-device",
+            "virtio-net-pci,netdev=net0",
+            "-vnc",
+            f"127.0.0.1:{display_port}",
+            "-vga",
+            "virtio",
+            "-display",
+            "default,show-cursor=on",
             "-usb",
-            "-device", "usb-tablet",
+            "-device",
+            "usb-tablet",
             "-daemonize",
         ]
         if config.iso_path:
@@ -154,6 +167,7 @@ class MacOSBackend(BaseBackend):
         if vm_info is None:
             return False
         import signal as _signal
+
         proc = vm_info.get("proc")
         if proc is not None:
             try:
@@ -168,6 +182,7 @@ class MacOSBackend(BaseBackend):
         if vm_info is None:
             return False
         import signal as _signal
+
         proc = vm_info.get("proc")
         if proc is not None:
             try:
@@ -183,6 +198,7 @@ class MacOSBackend(BaseBackend):
         img_dir = BOXES_IMAGES / backend_id
         if img_dir.exists():
             import shutil
+
             shutil.rmtree(str(img_dir), ignore_errors=True)
         return True
 
@@ -195,8 +211,7 @@ class MacOSBackend(BaseBackend):
     def create_disk_image(self, path: str, size_gb: int) -> bool:
         try:
             result = subprocess.run(
-                ["qemu-img", "create", "-f", "qcow2", path, f"{size_gb}G"],
-                capture_output=True
+                ["qemu-img", "create", "-f", "qcow2", path, f"{size_gb}G"], capture_output=True
             )
             return result.returncode == 0
         except FileNotFoundError:
@@ -214,4 +229,5 @@ class MacOSBackend(BaseBackend):
     @staticmethod
     def _which(name: str) -> Optional[str]:
         import shutil
+
         return shutil.which(name)

@@ -8,14 +8,32 @@ version = "1.0.0"
 description = "Virtualization made simple — cross-platform VM manager"
 readme = "README.md"
 license = "LGPL-2.1+"
+license-files = ["LICENSE"]
 authors = [
     {name = "Alessio Attilio", email = "attilio.alessio@protonmail.com"},
+]
+keywords = ["virtualization", "kvm", "qemu", "libvirt", "vm", "manager"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Emulators",
+    "Topic :: System :: Operating System",
+    "Topic :: System :: Systems Administration",
 ]
 requires-python = ">=3.11"
 dependencies = [
     "PyQt6>=6.5",
 ]
 optional-dependencies.dev = [
+    "pre-commit>=3",
     "pytest>=7",
     "pytest-qt>=4",
     "ruff>=0.1",
@@ -24,6 +42,11 @@ optional-dependencies.dev = [
 optional-dependencies.libvirt = [
     "libvirt-python>=10",
 ]
+
+[project.urls]
+Homepage = "https://github.com/alessio-attilio/boxes"
+Repository = "https://github.com/alessio-attilio/boxes.git"
+Documentation = "https://github.com/alessio-attilio/boxes"
 
 [project.scripts]
 boxes = "boxes.app:main"

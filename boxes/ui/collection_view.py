@@ -43,7 +43,9 @@ class IconViewDelegate(QStyledItemDelegate):
         painter.drawText(text_r, Qt.AlignmentFlag.AlignCenter, name)
 
         if machine:
-            painter.setPen(QPen(QColor(MachineState.COLORS.get(machine.state, _c("text_muted", "#9aa0a6"))), 1))
+            painter.setPen(
+                QPen(QColor(MachineState.COLORS.get(machine.state, _c("text_muted", "#9aa0a6"))), 1)
+            )
             f.setPointSize(9)
             painter.setFont(f)
             status_r = QRect(rect.x(), text_r.bottom(), rect.width(), 16)
@@ -87,21 +89,31 @@ class ListViewDelegate(QStyledItemDelegate):
         f = QFont("sans-serif", 12)
         painter.setFont(f)
         painter.setPen(QPen(QColor(_c("text", "#1f2937")), 1))
-        painter.drawText(QRect(rect.x() + 52, rect.y() + 6, 260, 20),
-                         Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, name)
+        painter.drawText(
+            QRect(rect.x() + 52, rect.y() + 6, 260, 20),
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+            name,
+        )
 
         if machine:
-            painter.setPen(QPen(QColor(MachineState.COLORS.get(machine.state, _c("text_muted", "#9aa0a6"))), 1))
+            painter.setPen(
+                QPen(QColor(MachineState.COLORS.get(machine.state, _c("text_muted", "#9aa0a6"))), 1)
+            )
             f.setPointSize(10)
             painter.setFont(f)
-            painter.drawText(QRect(rect.x() + 52, rect.y() + 26, 260, 16),
-                             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                             machine.status_text)
+            painter.drawText(
+                QRect(rect.x() + 52, rect.y() + 26, 260, 16),
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                machine.status_text,
+            )
 
             info = f"{machine.config.memory_mb} MB  |  {machine.config.vcpus} vCPU"
             painter.setPen(QPen(QColor(_c("text_muted", "#64748b")), 1))
-            painter.drawText(QRect(rect.right() - 240, rect.y(), 220, 48),
-                             Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, info)
+            painter.drawText(
+                QRect(rect.right() - 240, rect.y(), 220, 48),
+                Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+                info,
+            )
 
         if option.state & QStyle.StateFlag.State_Selected:
             painter.setPen(QPen(QColor(_c("accent", "#6366f1")), 2))

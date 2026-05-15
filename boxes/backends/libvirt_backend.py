@@ -19,6 +19,7 @@ class LibvirtBackend(BaseBackend):
     def _import_libvirt(self):
         if self._libvirt is None:
             import libvirt as _lv
+
             self._libvirt = _lv
         return self._libvirt
 
@@ -50,26 +51,30 @@ class LibvirtBackend(BaseBackend):
             for domain_id in self._conn.listDomainsID():
                 dom = self._conn.lookupByID(domain_id)
                 state, max_mem, mem, vcpus, cpu_time = dom.info()
-                results.append({
-                    "name": dom.name(),
-                    "uuid": dom.UUIDString(),
-                    "state": state,
-                    "max_mem": max_mem,
-                    "vcpus": vcpus,
-                    "id": domain_id,
-                    "active": True,
-                })
+                results.append(
+                    {
+                        "name": dom.name(),
+                        "uuid": dom.UUIDString(),
+                        "state": state,
+                        "max_mem": max_mem,
+                        "vcpus": vcpus,
+                        "id": domain_id,
+                        "active": True,
+                    }
+                )
             for name in self._conn.listDefinedDomains():
                 dom = self._conn.lookupByName(name)
-                results.append({
-                    "name": dom.name(),
-                    "uuid": dom.UUIDString(),
-                    "state": 0,
-                    "max_mem": 0,
-                    "vcpus": 0,
-                    "id": -1,
-                    "active": False,
-                })
+                results.append(
+                    {
+                        "name": dom.name(),
+                        "uuid": dom.UUIDString(),
+                        "state": 0,
+                        "max_mem": 0,
+                        "vcpus": 0,
+                        "id": -1,
+                        "active": False,
+                    }
+                )
         except Exception:
             pass
         return results
@@ -156,9 +161,13 @@ class LibvirtBackend(BaseBackend):
         try:
             dom = self._conn.lookupByUUIDString(backend_id)
             state, _, _, _, _ = dom.info()
-            mapping = {1: MachineState.RUNNING, 2: MachineState.PAUSED,
-                       3: MachineState.SLEEPING, 5: MachineState.SLEEPING,
-                       4: MachineState.CRASHED}
+            mapping = {
+                1: MachineState.RUNNING,
+                2: MachineState.PAUSED,
+                3: MachineState.SLEEPING,
+                5: MachineState.SLEEPING,
+                4: MachineState.CRASHED,
+            }
             return mapping.get(state, MachineState.STOPPED)
         except Exception:
             return MachineState.STOPPED
@@ -172,7 +181,7 @@ class LibvirtBackend(BaseBackend):
                 return False
             xml = f"""
             <volume>
-                <name>{path.split('/')[-1]}</name>
+                <name>{path.split("/")[-1]}</name>
                 <capacity unit='G'>{size_gb}</capacity>
                 <allocation unit='G'>0</allocation>
                 <target>
@@ -192,6 +201,7 @@ class LibvirtBackend(BaseBackend):
             dom = self._conn.lookupByUUIDString(backend_id)
             xml = dom.XMLDesc()
             import re
+
             match = re.search(r"<graphics type='(\w+)'.*?port='(\d+)'.*?listen='([^']*)'", xml)
             if match:
                 return match.group(3)
@@ -209,6 +219,7 @@ class LibvirtBackend(BaseBackend):
             dom = self._conn.lookupByUUIDString(backend_id)
             xml = dom.XMLDesc()
             import re
+
             match = re.search(r"<graphics type='(\w+)'.*?port='(\d+)'", xml)
             if match:
                 return int(match.group(2))

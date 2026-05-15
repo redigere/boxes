@@ -15,15 +15,15 @@ from boxes.constants import BOXES_IMAGES
 
 
 KVM_API_VERSION = 12
-KVM_GET_API_VERSION = 0xae00
-KVM_CREATE_VM = 0x4020ae01
-KVM_CHECK_EXTENSION = 0xae03
-KVM_CREATE_VCPU = 0x4020ae41
-KVM_SET_USER_MEMORY_REGION = 0x4020ae46
-KVM_RUN = 0xae80
-KVM_GET_VCPU_MMAP_SIZE = 0xae04
-KVM_SET_TSS_ADDR = 0xae47
-KVM_CREATE_IRQCHIP = 0xae60
+KVM_GET_API_VERSION = 0xAE00
+KVM_CREATE_VM = 0x4020AE01
+KVM_CHECK_EXTENSION = 0xAE03
+KVM_CREATE_VCPU = 0x4020AE41
+KVM_SET_USER_MEMORY_REGION = 0x4020AE46
+KVM_RUN = 0xAE80
+KVM_GET_VCPU_MMAP_SIZE = 0xAE04
+KVM_SET_TSS_ADDR = 0xAE47
+KVM_CREATE_IRQCHIP = 0xAE60
 KVM_CAP_MAX_VCPUS = 66
 KVM_CAP_USER_MEMORY = 5
 
@@ -88,9 +88,7 @@ class KVMDevice:
             vcpu_fd = fcntl.ioctl(vm_fd, KVM_CREATE_VCPU, vcpu_id)
             self._vcpu_fd = vcpu_fd
             if self._vcpu_mmap_size == 0 and self._kvm_fd is not None:
-                self._vcpu_mmap_size = fcntl.ioctl(
-                    self._kvm_fd, KVM_GET_VCPU_MMAP_SIZE, 0
-                )
+                self._vcpu_mmap_size = fcntl.ioctl(self._kvm_fd, KVM_GET_VCPU_MMAP_SIZE, 0)
             return vcpu_fd
         except OSError:
             return None
@@ -98,9 +96,7 @@ class KVMDevice:
     def set_user_memory_region(
         self, vm_fd: int, guest_paddr: int, mem_size: int, host_addr: int, slot: int = 0
     ) -> bool:
-        region = struct.pack(
-            "IIQII", slot, guest_paddr >> 16, host_addr, mem_size, 0
-        )
+        region = struct.pack("IIQII", slot, guest_paddr >> 16, host_addr, mem_size, 0)
         try:
             fcntl.ioctl(vm_fd, KVM_SET_USER_MEMORY_REGION, region)
             return True
@@ -198,22 +194,21 @@ class Type0Backend(BaseBackend):
 
     def list_machines(self) -> list[dict]:
         if self._mode == "xen" and self._xen.is_open:
-            result = subprocess.run(
-                ["xl", "list"],
-                capture_output=True, text=True, timeout=10
-            )
+            result = subprocess.run(["xl", "list"], capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
                 machines = []
                 lines = result.stdout.strip().split("\n")[1:]
                 for line in lines:
                     parts = line.split()
                     if len(parts) >= 5:
-                        machines.append({
-                            "name": parts[0],
-                            "id": int(parts[1]) if parts[1].isdigit() else -1,
-                            "state": 1 if "r" in parts[4] else 0,
-                            "active": "r" in parts[4],
-                        })
+                        machines.append(
+                            {
+                                "name": parts[0],
+                                "id": int(parts[1]) if parts[1].isdigit() else -1,
+                                "state": 1 if "r" in parts[4] else 0,
+                                "active": "r" in parts[4],
+                            }
+                        )
                 return machines
         return [
             {
@@ -248,9 +243,7 @@ class Type0Backend(BaseBackend):
             return None
         mem_size = config.memory_mb * 1024 * 1024
         mem = ctypes.create_string_buffer(mem_size)
-        self._kvm.set_user_memory_region(
-            vm_fd, 0, mem_size, ctypes.addressof(mem), 0
-        )
+        self._kvm.set_user_memory_region(vm_fd, 0, mem_size, ctypes.addressof(mem), 0)
         return vm_fd
 
     def _start_qemu_kvm(self, config: BoxConfig) -> Optional[subprocess.Popen]:
@@ -258,22 +251,35 @@ class Type0Backend(BaseBackend):
         if qemu is None:
             return None
         import socket as _socket
+
         with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as s:
             s.bind(("", 0))
             display_port = s.getsockname()[1]
         cmd = [
-            qemu, "-nographic",
-            "-machine", "pc-q35-9.2,accel=kvm:dax:tcg",
-            "-cpu", "host,passthrough",
-            "-m", str(config.memory_mb),
-            "-smp", str(config.vcpus),
-            "-drive", f"file={config.disk_path},format=qcow2,if=virtio,aio=native,cache=unsafe",
-            "-netdev", "user,id=net0",
-            "-device", "virtio-net-pci,netdev=net0",
-            "-vnc", f"127.0.0.1:{display_port}",
-            "-vga", "virtio",
-            "-device", "virtio-balloon",
-            "-device", "usb-tablet",
+            qemu,
+            "-nographic",
+            "-machine",
+            "pc-q35-9.2,accel=kvm:dax:tcg",
+            "-cpu",
+            "host,passthrough",
+            "-m",
+            str(config.memory_mb),
+            "-smp",
+            str(config.vcpus),
+            "-drive",
+            f"file={config.disk_path},format=qcow2,if=virtio,aio=native,cache=unsafe",
+            "-netdev",
+            "user,id=net0",
+            "-device",
+            "virtio-net-pci,netdev=net0",
+            "-vnc",
+            f"127.0.0.1:{display_port}",
+            "-vga",
+            "virtio",
+            "-device",
+            "virtio-balloon",
+            "-device",
+            "usb-tablet",
             "-daemonize",
         ]
         if config.iso_path and Path(config.iso_path).exists():
@@ -296,8 +302,7 @@ class Type0Backend(BaseBackend):
             f.write(cfg_content)
         try:
             proc = subprocess.Popen(
-                [xl, "create", cfg_path],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                [xl, "create", cfg_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
             )
             proc.wait(timeout=30)
             return proc
@@ -344,10 +349,7 @@ class Type0Backend(BaseBackend):
                 except Exception:
                     pass
         if self._mode == "xen":
-            subprocess.run(
-                ["xl", "shutdown", backend_id],
-                capture_output=True, timeout=10
-            )
+            subprocess.run(["xl", "shutdown", backend_id], capture_output=True, timeout=10)
         vm_info["state"] = MachineState.STOPPED
         return True
 
@@ -387,6 +389,7 @@ class Type0Backend(BaseBackend):
         img_dir = BOXES_IMAGES / backend_id
         if img_dir.exists():
             import shutil as _shutil
+
             _shutil.rmtree(str(img_dir), ignore_errors=True)
         return True
 
@@ -400,7 +403,8 @@ class Type0Backend(BaseBackend):
         try:
             result = subprocess.run(
                 ["qemu-img", "create", "-f", "qcow2", path, f"{size_gb}G"],
-                capture_output=True, timeout=120
+                capture_output=True,
+                timeout=120,
             )
             return result.returncode == 0
         except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -429,15 +433,15 @@ class Type0Backend(BaseBackend):
             f"memory = {config.memory_mb}\n"
             f"maxmem = {config.memory_mb}\n"
             f"vcpus = {config.vcpus}\n"
-            f'maxvcpus = {config.vcpus}\n'
+            f"maxvcpus = {config.vcpus}\n"
             f'builder = "hvm"\n'
             f'boot = "d"\n'
-            f'disk = [\n'
-            f'  \'{config.disk_path or ""},qcow2,xvda,rw\',\n'
-            f'  \'{config.iso_path or ""},raw,xvdb:cdrom,r\'\n'
-            f']\n'
-            f'vif = [\'bridge=xenbr0\']\n'
-            f'vnc = 1\n'
+            f"disk = [\n"
+            f"  '{config.disk_path or ''},qcow2,xvda,rw',\n"
+            f"  '{config.iso_path or ''},raw,xvdb:cdrom,r'\n"
+            f"]\n"
+            f"vif = ['bridge=xenbr0']\n"
+            f"vnc = 1\n"
             f'vnclisten = "127.0.0.1"\n'
             f'serial = "pty"\n'
             f'on_poweroff = "destroy"\n'

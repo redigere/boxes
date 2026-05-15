@@ -1,6 +1,14 @@
-from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QTabWidget,
-                             QWidget, QSpinBox, QFormLayout, QDialogButtonBox,
-                             QComboBox, QLineEdit)
+from PyQt6.QtWidgets import (
+    QDialog,
+    QVBoxLayout,
+    QTabWidget,
+    QWidget,
+    QSpinBox,
+    QFormLayout,
+    QDialogButtonBox,
+    QComboBox,
+    QLineEdit,
+)
 
 from boxes.models.machine import Machine
 from boxes.models.config import BoxConfig
@@ -18,19 +26,19 @@ class ResourcesTab(QWidget):
         self.memory_spin.setValue(config.memory_mb)
         self.memory_spin.setSingleStep(256)
         self.memory_spin.setSuffix(" MB")
-        self.memory_spin.valueChanged.connect(lambda v: setattr(config, 'memory_mb', v))
+        self.memory_spin.valueChanged.connect(lambda v: setattr(config, "memory_mb", v))
         layout.addRow("Memory:", self.memory_spin)
 
         self.vcpu_spin = QSpinBox()
         self.vcpu_spin.setRange(1, 256)
         self.vcpu_spin.setValue(config.vcpus)
-        self.vcpu_spin.valueChanged.connect(lambda v: setattr(config, 'vcpus', v))
+        self.vcpu_spin.valueChanged.connect(lambda v: setattr(config, "vcpus", v))
         layout.addRow("vCPUs:", self.vcpu_spin)
 
         self.cpu_combo = QComboBox()
         self.cpu_combo.addItems(["host", "host-passthrough", "qemu64", "qemu32", "kvm64"])
         self.cpu_combo.setCurrentText(config.cpu_model)
-        self.cpu_combo.currentTextChanged.connect(lambda v: setattr(config, 'cpu_model', v))
+        self.cpu_combo.currentTextChanged.connect(lambda v: setattr(config, "cpu_model", v))
         layout.addRow("CPU Model:", self.cpu_combo)
 
     def save(self) -> None:
@@ -128,12 +136,14 @@ class PreferencesDialog(QDialog):
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
+
         def _on_accept() -> None:
             self.resources.save()
             self.storage.save()
             self.network.save()
             self.display.save()
             self.accept()
+
         buttons.accepted.connect(_on_accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)

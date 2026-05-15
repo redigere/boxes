@@ -28,7 +28,10 @@ class QEMUProcess:
         cmd += ["-cpu", self.config.cpu_model]
         cmd += ["-m", str(self.config.memory_mb)]
         cmd += ["-smp", str(self.config.vcpus)]
-        cmd += ["-drive", f"file={self.config.disk_path},format=qcow2,if=virtio,aio=native,cache=unsafe"]
+        cmd += [
+            "-drive",
+            f"file={self.config.disk_path},format=qcow2,if=virtio,aio=native,cache=unsafe",
+        ]
         if self.config.iso_path and Path(self.config.iso_path).exists():
             cmd += ["-cdrom", self.config.iso_path]
         cmd += ["-netdev", "user,id=net0"]
@@ -55,8 +58,7 @@ class QEMUProcess:
         disks_dir.mkdir(parents=True, exist_ok=True)
         try:
             self.process = subprocess.Popen(
-                cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                cwd=str(disks_dir)
+                cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=str(disks_dir)
             )
             if self.process.pid and self.process.pid > 0:
                 return True
@@ -78,6 +80,7 @@ class QEMUProcess:
 
     def send_qmp(self, cmd: dict) -> Optional[dict]:
         import json
+
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(5)
@@ -135,12 +138,14 @@ class QEMUBackend(BaseBackend):
         results = []
         for uuid, proc in self._processes.items():
             status = proc.query_status()
-            results.append({
-                "name": proc.config.name,
-                "uuid": uuid,
-                "state": 1 if status == "running" else 0,
-                "active": status == "running",
-            })
+            results.append(
+                {
+                    "name": proc.config.name,
+                    "uuid": uuid,
+                    "state": 1 if status == "running" else 0,
+                    "active": status == "running",
+                }
+            )
         return results
 
     def define_machine(self, config: BoxConfig) -> Optional[str]:
@@ -192,6 +197,7 @@ class QEMUBackend(BaseBackend):
         img_dir = BOXES_IMAGES / backend_id
         if img_dir.exists():
             import shutil
+
             shutil.rmtree(str(img_dir), ignore_errors=True)
         return True
 
@@ -214,8 +220,7 @@ class QEMUBackend(BaseBackend):
         try:
             Path(path).parent.mkdir(parents=True, exist_ok=True)
             result = subprocess.run(
-                ["qemu-img", "create", "-f", "qcow2", path, f"{size_gb}G"],
-                capture_output=True
+                ["qemu-img", "create", "-f", "qcow2", path, f"{size_gb}G"], capture_output=True
             )
             return result.returncode == 0
         except FileNotFoundError:

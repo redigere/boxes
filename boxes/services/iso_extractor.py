@@ -20,8 +20,18 @@ class ISOExtractor:
         kernel = None
         initrd = None
         candidates = {
-            "kernel": ["isolinux/vmlinuz", "images/pxeboot/vmlinuz", "casper/vmlinuz", "live/vmlinuz"],
-            "initrd": ["isolinux/initrd.img", "images/pxeboot/initrd.img", "casper/initrd", "live/initrd.img"],
+            "kernel": [
+                "isolinux/vmlinuz",
+                "images/pxeboot/vmlinuz",
+                "casper/vmlinuz",
+                "live/vmlinuz",
+            ],
+            "initrd": [
+                "isolinux/initrd.img",
+                "images/pxeboot/initrd.img",
+                "casper/initrd",
+                "live/initrd.img",
+            ],
         }
         for kind, paths in candidates.items():
             for p in paths:
@@ -39,8 +49,7 @@ class ISOExtractor:
     def _extract(self, iso: str, src: str, dest: str) -> bool:
         try:
             result = subprocess.run(
-                ["isoinfo", "-R", "-x", f"/{src}", "-i", iso],
-                capture_output=True, timeout=30
+                ["isoinfo", "-R", "-x", f"/{src}", "-i", iso], capture_output=True, timeout=30
             )
             if result.returncode == 0 and result.stdout:
                 Path(dest).write_bytes(result.stdout)

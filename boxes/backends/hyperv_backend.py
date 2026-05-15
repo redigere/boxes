@@ -19,7 +19,9 @@ class HyperVBackend(BaseBackend):
         try:
             result = subprocess.run(
                 ["powershell.exe", "-NoProfile", "-Command", command],
-                capture_output=True, text=True, timeout=30
+                capture_output=True,
+                text=True,
+                timeout=30,
             )
             if result.returncode == 0:
                 return result.stdout.strip()
@@ -44,24 +46,29 @@ class HyperVBackend(BaseBackend):
         return self._connected
 
     def list_machines(self) -> list[dict]:
-        out = self._ps("Get-VM | Select-Object Name,Id,State,MemoryStartup,CPUUsage | ConvertTo-Json")
+        out = self._ps(
+            "Get-VM | Select-Object Name,Id,State,MemoryStartup,CPUUsage | ConvertTo-Json"
+        )
         if out is None or out == "":
             return []
         results = []
         import json
+
         try:
             data = json.loads(out)
             if isinstance(data, dict):
                 data = [data]
             for vm in data:
                 state_str = vm.get("State", "Off")
-                results.append({
-                    "name": vm.get("Name", ""),
-                    "uuid": vm.get("Id", ""),
-                    "state": 1 if state_str == "Running" else 0,
-                    "memory": vm.get("MemoryStartup", 0),
-                    "active": state_str == "Running",
-                })
+                results.append(
+                    {
+                        "name": vm.get("Name", ""),
+                        "uuid": vm.get("Id", ""),
+                        "state": 1 if state_str == "Running" else 0,
+                        "memory": vm.get("MemoryStartup", 0),
+                        "active": state_str == "Running",
+                    }
+                )
         except (json.JSONDecodeError, TypeError):
             pass
         return results
@@ -148,9 +155,7 @@ class HyperVBackend(BaseBackend):
 
     def create_disk_image(self, path: str, size_gb: int) -> bool:
         vhdx_path = path.replace(".qcow2", ".vhdx")
-        result = self._ps(
-            f"New-VHD -Path '{vhdx_path}' -SizeBytes {size_gb * 1024**3} -Dynamic"
-        )
+        result = self._ps(f"New-VHD -Path '{vhdx_path}' -SizeBytes {size_gb * 1024**3} -Dynamic")
         return result is not None
 
     def get_display_address(self, backend_id: str) -> Optional[str]:

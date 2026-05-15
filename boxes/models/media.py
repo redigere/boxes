@@ -10,10 +10,18 @@ class InstallerMedia:
     def _detect_os(self) -> str:
         name = self.path.stem.lower()
         for keyword, os_id in [
-            ("fedora", "fedora"), ("ubuntu", "ubuntu"), ("debian", "debian"),
-            ("centos", "centos"), ("rhel", "rhel"), ("arch", "arch"),
-            ("opensuse", "opensuse"), ("windows", "windows"), ("win", "windows"),
-            ("alma", "almalinux"), ("rocky", "rockylinux"), ("freebsd", "freebsd"),
+            ("fedora", "fedora"),
+            ("ubuntu", "ubuntu"),
+            ("debian", "debian"),
+            ("centos", "centos"),
+            ("rhel", "rhel"),
+            ("arch", "arch"),
+            ("opensuse", "opensuse"),
+            ("windows", "windows"),
+            ("win", "windows"),
+            ("alma", "almalinux"),
+            ("rocky", "rockylinux"),
+            ("freebsd", "freebsd"),
         ]:
             if keyword in name:
                 return os_id

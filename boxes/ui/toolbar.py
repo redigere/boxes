@@ -15,7 +15,9 @@ class CollectionToolbar(QWidget):
         layout.addWidget(self.title)
 
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
+        spacer.setSizePolicy(
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        )
         layout.addWidget(spacer)
 
         self.icon_btn = QPushButton("Icons")
@@ -30,7 +32,9 @@ class CollectionToolbar(QWidget):
         group = QButtonGroup(self)
         group.addButton(self.icon_btn)
         group.addButton(self.list_btn)
-        group.idClicked.connect(lambda btn: self.view_changed.emit("icon" if btn == self.icon_btn else "list"))
+        group.idClicked.connect(
+            lambda btn: self.view_changed.emit("icon" if btn == self.icon_btn else "list")
+        )
 
         self.new_btn = QPushButton("+ New VM")
         self.new_btn.setObjectName("newBtn")

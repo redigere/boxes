@@ -45,6 +45,7 @@ class TestBoxConfig:
 
     def test_save_and_load(self) -> None:
         from boxes.constants import BOXES_CONFIG
+
         BOXES_CONFIG.mkdir(parents=True, exist_ok=True)
         config = BoxConfig(name="save-test", memory_mb=1024)
         config.save()
