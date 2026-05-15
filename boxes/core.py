@@ -127,7 +127,9 @@ class BoxesCore:
             arch=arch,
         )
 
-        disk_path = str(BOXES_IMAGES / config.uuid / f"{name}.qcow2")
+        disk_dir = BOXES_IMAGES / config.uuid
+        disk_dir.mkdir(parents=True, exist_ok=True)
+        disk_path = str(disk_dir / f"{name}.qcow2")
         config.disk_path = disk_path
 
         config.save()

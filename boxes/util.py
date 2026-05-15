@@ -2,8 +2,9 @@ import shutil
 import subprocess
 import os
 import sys
+import urllib.request
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Callable
 
 
 def find_qemu_binary(arch: str = "x86_64") -> Optional[str]:
@@ -110,6 +111,51 @@ def check_type0_available() -> bool:
     if check_xen_available():
         return True
     return False
+
+
+def download_file(
+    url: str,
+    dest: str,
+    on_progress: Optional[Callable[[int, int], None]] = None,
+    chunk_size: int = 8192,
+) -> str:
+    dest_path = Path(dest)
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    req = urllib.request.Request(url, headers={"User-Agent": "Boxes/1.0"})
+    response = urllib.request.urlopen(req, timeout=120)
+    total = int(response.headers.get("Content-Length", 0))
+    downloaded = 0
+    with open(dest, "wb") as f:
+        while data := response.read(chunk_size):
+            f.write(data)
+            downloaded += len(data)
+            if on_progress and total > 0:
+                on_progress(downloaded, total)
+    return dest
+
+
+def download_iso(
+    url: str,
+    dest_dir: Optional[str] = None,
+    filename: Optional[str] = None,
+) -> str:
+    if filename is None:
+        filename = url.rsplit("/", 1)[-1]
+    if dest_dir is None:
+        from boxes.constants import BOXES_ISO
+
+        dest_dir = str(BOXES_ISO)
+    dest = str(Path(dest_dir) / filename)
+    print(f"Downloading {url} -> {dest} ...")
+    download_file(
+        url,
+        dest,
+        on_progress=lambda d, t: print(
+            f"\r  {d // 1024 // 1024}MB / {t // 1024 // 1024}MB", end=""
+        ),
+    )
+    print(f"\nDownloaded to {dest}")
+    return dest
 
 
 def human_size(bytes_val: int) -> str:

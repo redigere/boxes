@@ -102,6 +102,12 @@ def cmd_delete(args: argparse.Namespace, core: BoxesCore) -> None:
         sys.exit(1)
 
 
+def cmd_download(args: argparse.Namespace, core: BoxesCore) -> None:
+    from boxes.util import download_iso
+
+    download_iso(args.url, filename=args.filename)
+
+
 def cmd_diagnose(args: argparse.Namespace, core: BoxesCore) -> None:
     from boxes.diagnostics import get_root_cause
 
@@ -181,6 +187,10 @@ def main() -> int:
     p_delete.add_argument("name")
     p_delete.add_argument("-f", "--force", action="store_true", help="Skip confirmation")
 
+    p_dl = sub.add_parser("download", help="Download an ISO image")
+    p_dl.add_argument("--url", required=True, help="URL to ISO image")
+    p_dl.add_argument("--filename", help="Save as filename (default: from URL)")
+
     sub.add_parser("diagnose", help="Show diagnostic info and root cause analysis")
 
     p_info = sub.add_parser("info", help="Show VM or backend info")
@@ -209,6 +219,9 @@ def main() -> int:
         cmd_resume(args, core)
     elif args.command == "delete":
         cmd_delete(args, core)
+    elif args.command == "download":
+        cmd_download(args, core)
+        return 0
     elif args.command == "diagnose":
         cmd_diagnose(args, core)
     elif args.command == "info":
