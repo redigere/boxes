@@ -41,7 +41,7 @@ class BaseBackend:
     def resume_machine(self, backend_id: str) -> bool:
         return False
 
-    def delete_machine(self, backend_id: str) -> bool:
+    def delete_machine(self, backend_id: str, keep_disks: bool = False) -> bool:
         return True
 
     def get_state(self, backend_id: str) -> int:

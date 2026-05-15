@@ -138,7 +138,7 @@ class HyperVBackend(BaseBackend):
             return True
         return False
 
-    def delete_machine(self, backend_id: str) -> bool:
+    def delete_machine(self, backend_id: str, keep_disks: bool = False) -> bool:
         vm_info = self._vms.get(backend_id)
         if vm_info is not None:
             name = vm_info["config"].name

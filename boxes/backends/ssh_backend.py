@@ -113,7 +113,7 @@ class SSHBackend(BaseBackend):
         result = self._ssh(f"virsh resume {backend_id}")
         return result is not None
 
-    def delete_machine(self, backend_id: str) -> bool:
+    def delete_machine(self, backend_id: str, keep_disks: bool = False) -> bool:
         self._ssh(f"virsh destroy {backend_id} 2>/dev/null")
         result = self._ssh(f"virsh undefine {backend_id} --remove-all-storage")
         return result is not None

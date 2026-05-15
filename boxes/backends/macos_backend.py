@@ -192,7 +192,7 @@ class MacOSBackend(BaseBackend):
         vm_info["state"] = MachineState.RUNNING
         return True
 
-    def delete_machine(self, backend_id: str) -> bool:
+    def delete_machine(self, backend_id: str, keep_disks: bool = False) -> bool:
         self.shutdown_machine(backend_id)
         self._vms.pop(backend_id, None)
         img_dir = BOXES_IMAGES / backend_id

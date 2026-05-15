@@ -117,7 +117,7 @@ class XenBackend(BaseBackend):
         result = self._run_xl(f"unpause {backend_id}")
         return result is not None
 
-    def delete_machine(self, backend_id: str) -> bool:
+    def delete_machine(self, backend_id: str, keep_disks: bool = False) -> bool:
         self._run_xl(f"destroy {backend_id}")
         self._run_xl(f"delete {backend_id}")
         return True

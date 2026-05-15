@@ -90,13 +90,14 @@ class QEMUBackend(BaseBackend):
         resp = proc.send_qmp({"execute": "cont"})
         return resp is not None and "error" not in resp
 
-    def delete_machine(self, backend_id: str) -> bool:
+    def delete_machine(self, backend_id: str, keep_disks: bool = False) -> bool:
         self.undefine_machine(backend_id)
-        img_dir = BOXES_IMAGES / backend_id
-        if img_dir.exists():
-            import shutil
+        if not keep_disks:
+            img_dir = BOXES_IMAGES / backend_id
+            if img_dir.exists():
+                import shutil
 
-            shutil.rmtree(str(img_dir), ignore_errors=True)
+                shutil.rmtree(str(img_dir), ignore_errors=True)
         return True
 
     def get_state(self, backend_id: str) -> int:

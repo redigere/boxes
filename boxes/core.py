@@ -202,15 +202,19 @@ class BoxesCore:
             rc.diagnose(exc, self.backend_name, f"resume_vm:{name}")
             return False, f"Failed to resume VM '{config.name}': {exc}"
 
-    def delete_vm(self, name: str) -> tuple[bool, str]:
+    def delete_vm(self, name: str, keep_disks: bool = False) -> tuple[bool, str]:
         config = self.find_vm(name)
         if config is None:
             return False, f"VM '{name}' not found"
         try:
-            self.backend.delete_machine(config.uuid)
-            config.delete()
-            rc.record("delete_vm", "core", True, context={"name": name})
-            return True, f"VM '{config.name}' deleted"
+            self.backend.delete_machine(config.uuid, keep_disks=keep_disks)
+            if not keep_disks:
+                config.delete()
+            rc.record("delete_vm", "core", True, context={"name": name, "keep_disks": keep_disks})
+            msg = f"VM '{config.name}' deleted"
+            if keep_disks:
+                msg += " (disks preserved)"
+            return True, msg
         except Exception as exc:
             rc.diagnose(exc, self.backend_name, f"delete_vm:{name}")
             return False, f"Failed to delete VM '{config.name}': {exc}"

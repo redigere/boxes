@@ -96,7 +96,7 @@ def cmd_delete(args: argparse.Namespace, core: BoxesCore) -> None:
         if confirm != "y":
             print("Canceled.")
             return
-    ok, msg = core.delete_vm(args.name)
+    ok, msg = core.delete_vm(args.name, keep_disks=args.keep_disks)
     print(msg)
     if not ok:
         sys.exit(1)
@@ -105,7 +105,17 @@ def cmd_delete(args: argparse.Namespace, core: BoxesCore) -> None:
 def cmd_download(args: argparse.Namespace, core: BoxesCore) -> None:
     from boxes.util import download_iso
 
-    download_iso(args.url, filename=args.filename)
+    dest = download_iso(args.url, dest_dir=args.dir, filename=args.filename)
+    if args.start:
+        start_name = args.start
+        vm = core.find_vm(start_name)
+        if vm is None:
+            print(f"Error: VM '{start_name}' not found.")
+            return
+        iso_path = dest
+        vm.iso_path = iso_path
+        vm.save()
+        print(f"ISO attached to VM '{start_name}' at {iso_path}")
 
 
 def cmd_diagnose(args: argparse.Namespace, core: BoxesCore) -> None:
@@ -186,10 +196,18 @@ def main() -> int:
     p_delete = sub.add_parser("delete", help="Delete a VM")
     p_delete.add_argument("name")
     p_delete.add_argument("-f", "--force", action="store_true", help="Skip confirmation")
+    p_delete.add_argument(
+        "--keep-disks",
+        action="store_true",
+        default=False,
+        help="Preserve disk images on disk (do not delete them)",
+    )
 
     p_dl = sub.add_parser("download", help="Download an ISO image")
     p_dl.add_argument("--url", required=True, help="URL to ISO image")
     p_dl.add_argument("--filename", help="Save as filename (default: from URL)")
+    p_dl.add_argument("--dir", help="Destination directory (default: ~/Downloads/boxes)")
+    p_dl.add_argument("--start", help="Attach ISO to existing VM by name after download")
 
     sub.add_parser("diagnose", help="Show diagnostic info and root cause analysis")
 

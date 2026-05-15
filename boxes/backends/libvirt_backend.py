@@ -139,7 +139,7 @@ class LibvirtBackend(BaseBackend):
         except Exception:
             return False
 
-    def delete_machine(self, backend_id: str) -> bool:
+    def delete_machine(self, backend_id: str, keep_disks: bool = False) -> bool:
         if not self.connected or self._conn is None:
             return False
         try:
