@@ -9,7 +9,7 @@ from boxes.constants import BOXES_CONFIG, BOXES_IMAGES, BOXES_ISO
 from boxes.core import BoxesCore, detect_backend
 from boxes.models.config import BoxConfig
 from boxes.models.media import InstallerMedia
-from boxes.util import download_iso
+from boxes.util import download_file, download_iso
 
 
 ALPINE_URL = (
@@ -28,6 +28,82 @@ def _cleanup_vms(pattern: str = E2E_PREFIX) -> None:
             import shutil
 
             shutil.rmtree(str(d), ignore_errors=True)
+
+
+class TestE2EDownload:
+    def test_download_small_file(self, tmp_path: Path) -> None:
+        dest = str(tmp_path / "tiny.txt")
+        result = download_file(
+            "https://raw.githubusercontent.com/kairosci/boxes/master/README.md", dest
+        )
+        assert result == dest
+        assert Path(dest).exists()
+        assert Path(dest).stat().st_size > 0
+
+    def test_download_with_progress(self, tmp_path: Path) -> None:
+        dest = str(tmp_path / "progress.txt")
+        chunks: list[tuple[int, int]] = []
+
+        def track(d: int, t: int) -> None:
+            chunks.append((d, t))
+
+        download_file(
+            "https://raw.githubusercontent.com/kairosci/boxes/master/pyproject.toml",
+            dest,
+            on_progress=track,
+        )
+        assert len(chunks) > 0
+        last_d, last_t = chunks[-1]
+        assert last_d > 0
+        assert last_t > 0
+
+    def test_download_iso_to_default_dir(self) -> None:
+        if os.environ.get("BOXES_SKIP_DOWNLOAD", "0").lower() in ("1", "true", "yes"):
+            pytest.skip("BOXES_SKIP_DOWNLOAD is set")
+        BOXES_ISO.mkdir(parents=True, exist_ok=True)
+        dest = download_iso(ALPINE_URL, filename=ALPINE_FILENAME)
+        assert Path(dest).exists()
+        assert Path(dest).stat().st_size > 0
+
+    def test_download_nonexistent_url(self) -> None:
+        with pytest.raises(Exception):
+            download_file(
+                "https://raw.githubusercontent.com/kairosci/boxes/master/nonexistent.file",
+                "/tmp/boxes-nonexistent",
+            )
+
+    def test_download_invalid_url(self) -> None:
+        with pytest.raises(Exception):
+            download_file("https://invalid.domain.testing.boxes/test.iso", "/tmp/boxes-invalid")
+
+
+class TestE2ECLIDownload:
+    def test_cli_download_small(self, tmp_path: Path) -> None:
+        url = "https://raw.githubusercontent.com/kairosci/boxes/master/README.md"
+        result = subprocess.run(
+            [sys.executable, "-m", "boxes", "download", "--url", url],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        assert result.returncode == 0, f"stdout: {result.stdout}\nstderr: {result.stderr}"
+        assert "Downloaded" in result.stdout
+
+    def test_cli_download_invalid_url(self) -> None:
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "boxes",
+                "download",
+                "--url",
+                "https://invalid.domain.testing/test.iso",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        assert result.returncode != 0
 
 
 class TestE2EVMFromNetwork:
@@ -333,3 +409,114 @@ class TestE2ECLICreate:
         )
         assert result.returncode == 0
         assert core.find_vm(name) is None
+
+    def test_cli_create_duplicate_fails(self) -> None:
+        name = f"{E2E_PREFIX}cli-dup"
+        _cleanup_vms()
+        subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "boxes",
+                "create",
+                "--name",
+                name,
+                "--memory",
+                "256",
+                "--vcpus",
+                "1",
+                "--disk",
+                "3",
+            ],
+            capture_output=True,
+            timeout=15,
+        )
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "boxes",
+                "create",
+                "--name",
+                name,
+                "--memory",
+                "256",
+                "--vcpus",
+                "1",
+                "--disk",
+                "3",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        assert result.returncode != 0
+
+    def test_cli_delete_nonexistent(self) -> None:
+        result = subprocess.run(
+            [sys.executable, "-m", "boxes", "delete", "--force", f"{E2E_PREFIX}nonexistent"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        assert result.returncode != 0
+
+    def test_cli_start_nonexistent(self) -> None:
+        result = subprocess.run(
+            [sys.executable, "-m", "boxes", "start", f"{E2E_PREFIX}ghost"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        assert result.returncode != 0
+        assert "not found" in result.stderr.lower() or "not found" in result.stdout.lower()
+
+
+class TestE2EEdgeCases:
+    def test_create_vm_minimal_resources(self) -> None:
+        core = BoxesCore()
+        name = f"{E2E_PREFIX}minimal"
+        existing = core.find_vm(name)
+        if existing:
+            core.delete_vm(name)
+        config = core.create_vm(name=name, memory_mb=256, vcpus=1, disk_gb=1)
+        assert config.memory_mb == 256
+        assert config.vcpus == 1
+        assert config.disk_size_gb == 1
+
+    def test_create_multiple_vms(self) -> None:
+        _cleanup_vms()
+        core = BoxesCore()
+        names = [f"{E2E_PREFIX}multi-{i}" for i in range(3)]
+        for n in names:
+            core.create_vm(name=n, memory_mb=256, vcpus=1, disk_gb=2)
+        vms = core.list_vms()
+        found = [v["name"] for v in vms]
+        for n in names:
+            assert n in found
+
+    def test_vm_info_nonexistent(self) -> None:
+        core = BoxesCore()
+        info = core.vm_info(f"{E2E_PREFIX}no-such-vm")
+        assert info is None
+
+    def test_os_detection_via_cli(self) -> None:
+        result = subprocess.run(
+            [sys.executable, "-m", "boxes", "info"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        assert result.returncode == 0
+        assert "Backend" in result.stdout
+        assert "VMs" in result.stdout or "No VMs" in result.stdout
+
+    def test_diagnose_json_output(self) -> None:
+        result = subprocess.run(
+            [sys.executable, "-m", "boxes", "diagnose"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        assert result.returncode == 0
+        assert "Diagnostics" in result.stdout or "records" in result.stdout
