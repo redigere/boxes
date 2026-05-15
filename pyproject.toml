@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "boxes"
 version = "1.0.0"
-description = "Virtualization made simple — cross-platform VM manager"
+description = "Type-0 hypervisor manager — bare-metal KVM/Xen with CLI core"
 readme = "README.md"
 license = "LGPL-2.1+"
 license-files = ["LICENSE"]
