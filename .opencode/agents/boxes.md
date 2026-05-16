@@ -51,10 +51,14 @@ These rules are enforced for all Python code produced:
   `object` as type escape hatch, no untyped variables. Use `Optional[X]`
   for nullable values, `Union[X, Y]` for multi-type, `Sequence`/`Mapping`
   for collections. `# type: ignore` is banned.
-- **No placeholders, no fallbacks, no workarounds, no bare pass**: every
+- **No placeholders, no fallbacks, no workarounds, no bare pass, no hardcoded stubs**: every
   method must have a real implementation. No `TODO`, `FIXME`, `XXX`,
-  `NotImplementedError`, `...` (Ellipsis), or `pass` as a stub. Empty
-  bodies are rejected. Every code path must be correctly implemented.
+  `NotImplementedError`, or `pass` as a stub. `...` (Ellipsis) is only
+  allowed as the body of an `@abstractmethod` decorator. No
+  hardcoded return values like `return True`, `return False`, `return
+  "127.0.0.1"`, `return None` as method bodies. Every code path must
+  be correctly implemented. Base classes must use `abc.ABC` and
+  `@abstractmethod` — no inherited stubs.
 - **Type-0 first**: prioritise `KVMDevice`/`XenDevice` over QEMU/libvirt.
   The `detect_backend()` helper in `core.py` tries type-0, then xen, then
   libvirt, then qemu, then hyperv, then macos.
@@ -75,7 +79,9 @@ These rules are enforced for all Python code produced:
 - **CI runs with stdlib only**: no system Qt dependencies, no `ruff format`.
   mypy runs in strict mode on all `.py` files. Tests must pass with only
   Python stdlib installed.
-- **commit messages must be single-line**: one line only, no body.
+- **commit messages must be single-line**: one line only, no body. No
+  sprint/epic references in the subject line (no "Sprint N", "sprint N").
+  Use descriptive what+why format only.
 
 ## File layout
 
@@ -213,3 +219,4 @@ These rules are enforced for all Python code produced:
     manager curl/wget in code). All system CLIs detected at runtime via
     `shutil.which()` with graceful fallback.
 11. **Commit messages are single-line**: one line only, no body paragraph.
+    No sprint/epic references in the subject line.

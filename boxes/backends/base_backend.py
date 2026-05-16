@@ -1,12 +1,13 @@
 from __future__ import annotations
+
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from boxes.backends.backend_capabilities import BackendCapabilities
 from boxes.models.config import BoxConfig
-from boxes.models.machine_state import MachineState
 
 
-class BaseBackend:
+class BaseBackend(ABC):
 	def __init__(self) -> None:
 		self.capabilities = BackendCapabilities()
 		self._connected = False
@@ -21,38 +22,50 @@ class BaseBackend:
 	def connected(self) -> bool:
 		return self._connected
 
+	@abstractmethod
 	def list_machines(self) -> list[dict[str, str | int | bool | None]]:
-		return []
+		...
 
+	@abstractmethod
 	def define_machine(self, config: BoxConfig) -> Optional[str]:
-		return config.uuid
+		...
 
+	@abstractmethod
 	def undefine_machine(self, backend_id: str) -> bool:
-		return True
+		...
 
+	@abstractmethod
 	def start_machine(self, backend_id: str) -> bool:
-		return False
+		...
 
+	@abstractmethod
 	def shutdown_machine(self, backend_id: str) -> bool:
-		return False
+		...
 
+	@abstractmethod
 	def pause_machine(self, backend_id: str) -> bool:
-		return False
+		...
 
+	@abstractmethod
 	def resume_machine(self, backend_id: str) -> bool:
-		return False
+		...
 
+	@abstractmethod
 	def delete_machine(self, backend_id: str, keep_disks: bool = False) -> bool:
-		return True
+		...
 
+	@abstractmethod
 	def get_state(self, backend_id: str) -> int:
-		return MachineState.STOPPED
+		...
 
+	@abstractmethod
 	def create_disk_image(self, path: str, size_gb: int) -> bool:
-		return False
+		...
 
+	@abstractmethod
 	def get_display_address(self, backend_id: str) -> Optional[str]:
-		return "127.0.0.1"
+		...
 
+	@abstractmethod
 	def get_display_port(self, backend_id: str) -> Optional[int]:
-		return None
+		...
