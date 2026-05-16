@@ -40,6 +40,10 @@ These rules are enforced for all Python code produced:
   inline comments. Code must be self-documenting.
 - **Zero bullet or numbered lists in docstrings or comments**. Since
   comments are banned this is trivially satisfied.
+- **All `.md` files must be written as Word-style documents**: prose
+  paragraphs, tables, code blocks only. No markdown bullet lists,
+  numbered lists, or decorative elements (emojis, trees, separators).
+  Style reference: `ROADMAP.md`.
 - **1C1F strict**: one class per file, no exceptions. File name = snake_case
   of class name (e.g. `MachineState` -> `machine_state.py`).
 - **No placeholders, no bare pass**: every method must have a real
@@ -157,7 +161,11 @@ These rules are enforced for all Python code produced:
   detect-private-key.
 - `.gitignore` includes `*cache*`, `*Cache*`, `strip_comments.py`.
 - `.cspell.json`: virtualization word list.
-- `ROADMAP.md`: 7 sprints, feature parity matrix with GNOME Boxes.
+- `ROADMAP.md`: project life history document. Tracks all completed work
+  (Sprint 1-7), infrastructure milestones, feature parity, future sprints
+  (Sprint 8-12), proposals (P1/P2/P3), and dependency strategy.
+  Written as Word-style document (prose, tables, code blocks — no bullet
+  lists, numbered lists, emojis, or decorative elements).
 
 ## Key decisions
 
@@ -165,6 +173,9 @@ These rules are enforced for all Python code produced:
    `io.boxes.Boxes.yml` using GNOME Platform 47. Bundles boxes and its
    optional PyQt6 GUI dep inside the sandbox. QEMU/KVM accessed via host
    filesystem bridges (`--filesystem=/dev/kvm`, `--filesystem=home`).
+   Distribution relies entirely on **pip** (Python package, `dependencies
+   = []`, stdlib-only) + **Flatpak** (GNOME runtime for system deps).
+   No external services, no SaaS, no package manager URLs in code.
 2. **`detect_backend()`** stays in `core.py` as module-level helper - not split.
 3. **Backward-compat stubs**: when 1C1F splits a class out of a file, the
    original file becomes a re-export stub (`from X import Y as Y`), so
@@ -191,4 +202,7 @@ These rules are enforced for all Python code produced:
 10. **Zero runtime dependencies**: core and CLI work with Python stdlib
     only. PyQt6 (`[gui]`) and podman-py (`[container]`) are optional extras.
     All PyQt6 imports are guarded by `try/except ImportError`.
+    No external service references (no SaaS, no API URLs, no package
+    manager curl/wget in code). All system CLIs detected at runtime via
+    `shutil.which()` with graceful fallback.
 11. **Commit messages are single-line**: one line only, no body paragraph.

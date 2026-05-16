@@ -1,5 +1,9 @@
 # Boxes — Type-0 Hypervisor Manager — ROADMAP
 
+Project life history. Tracks completed milestones (Sprint 1-7),
+infrastructure work, current state, and planned development (Sprint 8-12).
+Updated as the project evolves.
+
 ## Differentiator: Type-0 First, CLI Core, Full Module Tree
 
 GNOME Boxes (virt-manager-based, type 2) relies on QEMU + libvirt for every
@@ -271,7 +275,7 @@ virgl/3D acceleration for guest graphics.
 
 ---
 
-## Sprint 7 — CI/CD, Packaging and Distribution (IN PROGRESS)
+## Sprint 7 — CI/CD, Packaging and Distribution (COMPLETE)
 
 Goal: Automated builds, pre-commit enforcement, Flatpak distribution,
 stdlib-only CI, end-to-end test suite.
@@ -347,8 +351,6 @@ ToastWidget with ToastOverlay, Topbar, and Searchbar.
 | tests/test_integration.py | 15 | Core integration, diagnostics |
 | tests/test_e2e.py | 39 | E2E: download, CLI, VM lifecycle, edge cases |
 
----
-
 ## Feature Parity Matrix — FINAL
 
 | Feature | GNOME Boxes | boxes (current) | boxes (target) | Sprint |
@@ -404,48 +406,315 @@ during initial development:
 | Strict error handling with RootCause on all public methods | Done |
 | Single-line commit conventions | Done |
 
+---
+
 ## New Proposals and Future Work
 
 Beyond the core 7 sprints and infrastructure, the following are proposed
-for future development.
+for future development. Each proposal is now tracked as a concrete sprint
+with detailed task breakdown in Sprint 8-12 above.
 
-### P1 — Type-0 Native Storage Backend
-- Implement qcow2 overlay chains natively (without qemu-img)
-- Zero-copy virtio-blk via KVM_SET_USER_MEMORY_REGION + VHOST_USER
-- Native NVMe emulation for type-0 VMs
+### P1 — Type-0 Native Storage Backend (Sprint 8)
+| Capability | Target |
+|------------|--------|
+| Native qcow2 overlay chains | No qemu-img call for disk create/snapshot |
+| Zero-copy virtio-blk | KVM_SET_USER_MEMORY_REGION + VHOST_USER |
+| Native NVMe emulation | Submission/completion queues, DMA for type-0 |
 
-### P1 — Web UI / REST API
-- FastAPI-based REST API for VM management
-- WebSocket for display streaming (noVNC / SPICE HTML5)
-- Mobile-responsive management interface
+### P1 — Web UI / REST API (Sprint 9)
+| Capability | Target |
+|------------|--------|
+| REST API | Lightweight HTTP server for VM CRUD |
+| Display streaming | WebSocket SPICE to HTML5 canvas, noVNC fallback |
+| Management interface | Mobile-responsive single-page web UI |
 
-### P2 — ARM / RISC-V Type-0
-- KVMDevice: aarch64 GICv3 interrupt controller
-- KVMDevice: riscv64 AIA (Advanced Interrupt Architecture)
-- Multi-arch firmware detection (UEFI for aarch64, OpenSBI for riscv64)
+### P2 — ARM / RISC-V Type-0 (Sprint 10)
+| Capability | Target |
+|------------|--------|
+| aarch64 GICv3 | Interrupt controller, ITS, redistributors |
+| riscv64 AIA | Advanced Interrupt Architecture support |
+| Multi-arch firmware | UEFI for aarch64, OpenSBI for riscv64 |
 
-### P2 — GPU Passthrough (VFIO)
-- VFIO device binding/unbinding helper
-- IOMMU group isolation
-- boxes vfio list/bind/unbind
+### P2 — GPU Passthrough VFIO (Sprint 10)
+| Capability | Target |
+|------------|--------|
+| IOMMU group isolation | Device binding/unbinding from host driver |
+| CLI | boxes vfio list/bind/unbind |
+| GUI | GPU passthrough device picker |
 
-### P2 — Distro-Integrated Package Manager
-- Flatpak auto-build on Flathub
-- Fedora COPR, Ubuntu PPA, Arch AUR build scripts
-- Windows MSI installer (Hyper-V backend native)
-- macOS DMG (Hypervisor.framework backend native)
+### P2 — Distro-Integrated Packaging (Sprint 11)
+| Channel | Artifact |
+|---------|---------|
+| Flathub | Flatpak auto-build workflow |
+| Fedora COPR | SRPM with boxes.spec |
+| Ubuntu PPA | debian/ build scripts |
+| Arch AUR | PKGBUILD |
+| Windows | MSI installer (WiX, Hyper-V backend) |
+| macOS | DMG (Hypervisor.framework backend) |
 
-### P3 — Advanced Networking
-- Virtual network creation (NAT/bridged/isolated)
-- DHCP/DNS integration with dnsmasq
-- WireGuard VPN tunnel for remote VM access
+### P3 — Advanced Networking (Sprint 11)
+| Capability | Target |
+|------------|--------|
+| Virtual NAT network | dnsmasq DHCP/DNS, tap interface |
+| Bridged network | Linux bridge + tap |
+| VPN tunnel | WireGuard for remote VM access |
 
-### P3 — VM Templates Marketplace
-- Online template repository (community-created VM configs)
-- boxes template search/download/publish
-- GitHub-hosted template index
+### P3 — VM Templates Marketplace (Sprint 12)
+| Capability | Target |
+|------------|--------|
+| Online repository | Community-created VM configs |
+| CLI | boxes template search/download/publish |
+| Hosting | GitHub-hosted template index with CI |
 
-### P3 — libguestfs Integration
-- Guest filesystem manipulation without booting
-- boxes guestfish <vm> <command>
-- In-guest file injection for express install customization
+### P3 — libguestfs Integration (Sprint 12)
+| Capability | Target |
+|------------|--------|
+| Guest filesystem | Native qcow2 mount, read, write (no libguestfs) |
+| CLI | boxes guestfish ls/cat/inject |
+| Express install | In-guest file injection for customization |
+
+---
+
+## Sprint 8 — Type-0 Native Storage Backend (PLANNED)
+
+Goal: Remove qemu-img dependency by implementing qcow2/vhdx natively in
+Python (stdlib-only). Add zero-copy virtio-blk and NVMe emulation for
+type-0 VMs.
+
+| # | Task | Status | Module |
+|---|------|--------|--------|
+| 8.1 | Native qcow2 format parser/writer (header, clusters, refcounts) | Planned | backends/type0/storage/qcow2.py |
+| 8.2 | Native qcow2 overlay chain (snapshot without qemu-img) | Planned | backends/type0/storage/qcow2.py |
+| 8.3 | Native VHDX parser/writer for Hyper-V backend | Planned | backends/type0/storage/vhdx.py |
+| 8.4 | Zero-copy virtio-blk via KVM_SET_USER_MEMORY_REGION | Planned | backends/type0/kvm_device.py |
+| 8.5 | VHOST_USER backend for virtio-blk (shared memory) | Planned | backends/type0/vhost.py |
+| 8.6 | Native NVMe emulation (submission/completion queues, DMA) | Planned | backends/type0/storage/nvme.py |
+| 8.7 | Disk format auto-detection (qcow2/raw/vhdx) | Planned | backends/type0/storage/disk.py |
+| 8.8 | Remove qemu-img from critical path; keep as optional fallback | Planned | all backends |
+
+### Acceptance
+- `boxes create --disk 10` creates qcow2 without calling qemu-img
+- Snapshot create/restore uses native qcow2 overlay chain
+- NVMe emulation yields better IOPS than virtio-blk on type-0
+- All existing backends fall back to qemu-img when native unavailable
+
+---
+
+## Sprint 9 — Web UI / REST API (PLANNED)
+
+Goal: Provide a lightweight web management interface with real-time
+display streaming — no desktop environment required.
+
+| # | Task | Status | Module |
+|---|------|--------|--------|
+| 9.1 | REST API: VM CRUD endpoints (create, start, stop, delete) | Planned | boxes/services/api/server.py |
+| 9.2 | REST API: snapshot listing and management | Planned | boxes/services/api/server.py |
+| 9.3 | REST API: USB hotplug and shared folder management | Planned | boxes/services/api/server.py |
+| 9.4 | WebSocket: VM state change push notifications | Planned | boxes/services/api/ws.py |
+| 9.5 | WebSocket: SPICE display streaming to HTML5 canvas | Planned | boxes/services/api/ws.py |
+| 9.6 | noVNC fallback for VNC-backed VMs | Planned | boxes/services/api/novnc.py |
+| 9.7 | Static single-page web UI (htmx + vanilla JS, no framework) | Planned | boxes/services/api/static/ |
+| 9.8 | CLI: `boxes serve` starts web server | Planned | cli.py |
+| 9.9 | Auth: API token authentication | Planned | services/auth/auth_manager.py |
+
+### Acceptance
+- `boxes serve --port 8080` serves a responsive VM dashboard
+- Create, start, stop, delete VM works from browser
+- VM display renders in browser at ≥30 FPS on LAN
+- API is usable by third-party tools (curl, Ansible, etc.)
+
+---
+
+## Sprint 10 — ARM / RISC-V Type-0 + GPU Passthrough (PLANNED)
+
+Goal: Extend type-0 backend to aarch64 and riscv64 architectures. Add
+VFIO GPU passthrough for high-performance graphics in VMs.
+
+| # | Task | Status | Module |
+|---|------|--------|--------|
+| 10.1 | KVMDevice: aarch64 GICv3 interrupt controller (ITS, redistributors) | Planned | backends/type0/kvm_device.py |
+| 10.2 | KVMDevice: aarch64 PSCI firmware interface | Planned | backends/type0/kvm_device.py |
+| 10.3 | KVMDevice: riscv64 AIA (Advanced Interrupt Architecture) | Planned | backends/type0/kvm_device.py |
+| 10.4 | KVMDevice: riscv64 SBI extension support | Planned | backends/type0/kvm_device.py |
+| 10.5 | Multi-arch firmware detection (UEFI aarch64, OpenSBI riscv64) | Planned | services/firmware/firmware_manager.py |
+| 10.6 | VFIO: IOMMU group detection and isolation | Planned | backends/type0/vfio.py |
+| 10.7 | VFIO: device binding/unbinding from host driver | Planned | backends/type0/vfio.py |
+| 10.8 | CLI: `boxes vfio list/bind/unbind` | Planned | cli.py |
+| 10.9 | GUI: GPU passthrough device picker | Planned | dialogs/preferences_dialog.py |
+
+### Acceptance
+- `boxes create --arch aarch64` boots on Apple M1/M2 (macOS HVF) or KVM host
+- `boxes create --arch riscv64` boots on QEMU riscv64 or KVM host
+- `boxes vfio bind 0000:01:00.0` isolates GPU for passthrough
+- Guest with VFIO GPU shows native graphics performance
+
+---
+
+## Sprint 11 — Distro-Integrated Packaging + Advanced Networking (PLANNED)
+
+Goal: Distribute boxes through all major package channels. Build virtual
+network infrastructure comparable to libvirt's default NAT network.
+
+| # | Task | Status | Module |
+|---|------|--------|--------|
+| 11.1 | Flatpak auto-build workflow on Flathub | Planned | .github/workflows/flathub.yml |
+| 11.2 | Fedora COPR build SRPM generator | Planned | packaging/fedora/boxes.spec |
+| 11.3 | Ubuntu PPA build scripts | Planned | packaging/ubuntu/debian/ |
+| 11.4 | Arch AUR PKGBUILD | Planned | packaging/arch/PKGBUILD |
+| 11.5 | Windows MSI installer (WiX toolset, Hyper-V backend) | Planned | packaging/windows/ |
+| 11.6 | macOS DMG (Hypervisor.framework backend) | Planned | packaging/macos/ |
+| 11.7 | Virtual NAT network with dnsmasq DHCP/DNS | Planned | services/network/nat_network.py |
+| 11.8 | Bridged network interface creation (tap + bridge) | Planned | services/network/bridge_network.py |
+| 11.9 | CLI: `boxes network create/list/remove` | Planned | cli.py |
+| 11.10 | WireGuard VPN tunnel for remote VM access | Planned | services/network/wireguard.py |
+
+### Acceptance
+- `pip install boxes` (stdlib-only) on all platforms
+- `flatpak install io.boxes.Boxes` works from Flathub
+- `boxes network create --nat mynet` provides DHCP to VMs
+- WireGuard tunnel allows VM access from remote hosts
+- Windows MSI installs and runs Hyper-V backend
+
+---
+
+## Sprint 12 — VM Templates Marketplace + libguestfs (PLANNED)
+
+Goal: Community-driven VM template sharing. Guest filesystem
+manipulation without booting the VM.
+
+| # | Task | Status | Module |
+|---|------|--------|--------|
+| 12.1 | Template index format (JSON schema, versioned) | Planned | services/template/template_index.py |
+| 12.2 | `boxes template search <query>` — search online index | Planned | services/template/template_manager.py |
+| 12.3 | `boxes template download <id>` — pull community template | Planned | services/template/template_manager.py |
+| 12.4 | `boxes template publish` — push to community index | Planned | services/template/template_manager.py |
+| 12.5 | Native qcow2 mount/read/write (no libguestfs) | Planned | services/guestfs/guestfs.py |
+| 12.6 | `boxes guestfish <vm> ls <path>` — list files in VM disk | Planned | services/guestfs/guestfs.py |
+| 12.7 | `boxes guestfish <vm> cat <path>` — read file from VM disk | Planned | services/guestfs/guestfs.py |
+| 12.8 | `boxes guestfish <vm> inject <src> <dst>` — file injection | Planned | services/guestfs/guestfs.py |
+| 12.9 | In-guest file injection for express install customization | Planned | services/install/unattended.py |
+
+### Acceptance
+- `boxes template search ubuntu` returns community Ubuntu templates
+- `boxes template download ubuntu-24.04` creates a pre-configured VM
+- `boxes guestfish myvm ls /etc/` lists files in an offline VM disk
+- `boxes guestfish myvm inject cloud-init.iso /` enables cloud-init
+- Template marketplace hosted on GitHub Pages with automated CI
+
+---
+
+## Dependency Strategy
+
+### Python Packages (`pip install boxes`)
+
+**Zero runtime dependencies.** The core package installs with only the
+Python stdlib — no PyPI packages required. This makes `boxes` usable in
+minimal environments (containers, embedded, air-gapped systems).
+
+| Category | Package | Type | Required |
+|----------|---------|------|----------|
+| Core | (stdlib only) | — | Yes |
+| GUI | PyQt6 >= 6.5 | Optional (`[gui]`) | No |
+| Container | podman-py >= 5 | Optional (`[container]`) | No |
+| Libvirt | libvirt-python >= 10 | Optional (`[libvirt]`) | No |
+| Image decode | Pillow | Optional (SPICE JPEG fallback) | No |
+| Dev | pytest, ruff, mypy, pre-commit | Dev only (`[dev]`) | No |
+
+Layout:
+```toml
+[project]
+dependencies = []       # stdlib only
+
+[project.optional-dependencies]
+gui = ["PyQt6>=6.5"]
+container = ["podman-py>=5"]
+libvirt = ["libvirt-python>=10"]
+dev = ["boxes[gui,container]", "pytest>=7", "ruff>=0.1", "mypy>=1.0", "pre-commit>=3"]
+```
+
+### Flatpak Distribution (`io.boxes.Boxes`)
+
+The Flatpak manifest uses **GNOME Platform** runtime which provides Qt,
+SPICE protocol libraries, and other system dependencies. All external
+CLI tools are resolved at build/run time from the Flatpak SDK or bundled
+as Flatpak modules.
+
+| System Dependency | Source | Required By |
+|-------------------|--------|-------------|
+| QEMU (qemu-system-*, qemu-img) | GNOME Platform runtime / bundled module | backends/qemu/, all disk ops |
+| OVMF/UEFI firmware | Flatpak module (edk2-ovmf) | services/firmware/ |
+| SPICE vdagentd | GNOME Platform runtime | services/vdagent/ |
+| libosinfo (osinfo-query) | Flatpak module (libosinfo) | services/osinfo/ |
+| Podman | Host (flatpak-spawn --host) | services/container/ |
+| dnsmasq | Flatpak module | services/network/ (Sprint 11) |
+| genisoimage/isoinfo | Flatpak module (cdrtools) | services/install/ |
+| lsusb (usbutils) | GNOME Platform runtime | services/usb/ |
+| WireGuard (wg) | Flatpak module / host | services/network/ (Sprint 11) |
+
+The `io.boxes.Boxes.yml` manifest installs the package with `pip install
+--prefix ... .[gui]` so the GUI is always available in Flatpak.
+System-level CLI tools are not bundled as Python dependencies — they
+remain external and are detected at runtime via `shutil.which()`, with
+graceful fallback and diagnostic reporting.
+
+### Runtime Detection Flow
+
+```
+shutil.which("qemu-img") -> found? yes -> use it
+                          -> no  -> try native qcow2 (Sprint 8)
+                                   -> unsupported? -> DiagnosticRecord + fallback
+```
+
+This design keeps the pip package zero-dependency while allowing
+full functionality when system tools are present — either natively or
+via Flatpak runtime. No command is ever hard-required; every external
+tool has a fallback path (either alternative tool, Python-native
+implementation, or a clear error message with install instructions).
+
+---
+
+## Feature Parity Matrix — EXTENDED
+
+| Feature | GNOME Boxes | boxes (current) | boxes (target) | Sprint |
+|---------|-------------|-----------------|----------------|--------|
+| VM create wizard | Yes | Yes | Yes | Sprint 4 |
+| ISO auto-download | Yes | Yes | Yes | Sprint 4 |
+| Express install | Yes | Yes | Yes | Sprint 4 |
+| SPICE display | Yes | Yes | Yes | Sprint 2 |
+| VNC display | Yes | Yes | Yes | Sprint 2 |
+| Shared clipboard | Yes | Yes | Yes | Sprint 2 |
+| Drag and drop | Yes | Yes | Yes | Sprint 2 |
+| Shared folders | Yes | Yes | Yes | Sprint 3 |
+| USB redirection | Yes | Yes | Yes | Sprint 3 |
+| Snapshots | Yes | Yes | Yes | Sprint 5 |
+| VM export/import | Yes | Yes | Yes | Sprint 5 |
+| UEFI + Secure Boot | Yes | Yes | Yes | Sprint 6 |
+| 3D acceleration | Yes | Yes | Yes | Sprint 6 |
+| Auto-resize display | Yes | Yes | Yes | Sprint 2 |
+| Live migration | Yes | Yes | Yes | Sprint 5 |
+| Templates | Yes | Yes | Yes | Sprint 4 |
+| Full CLI parity | No | Yes | Yes | — |
+| Type-0 backend | No | Yes | Yes | Sprint 1 |
+| Xen PV backend | No | Yes | Yes | Sprint 1 |
+| Remote SSH | No | Yes | Yes | — |
+| Cross-platform | No | Yes | Yes | — |
+| Root-cause diagnostics | No | Yes | Yes | — |
+| Strict error handling | No | Yes | Yes | — |
+| Flatpak distribution | No | Yes | Yes | Sprint 7 |
+| Container fallback (Podman) | No | Yes | Yes | Sprint 1 |
+| Error reporting | No | Yes | Yes | Sprint 7 |
+| Performance benchmarks | No | Yes | Yes | Sprint 7 |
+| Auth/Credential management | No | Yes | Yes | Sprint 7 |
+| Native qcow2 storage | No | No | Yes | Sprint 8 |
+| NVMe emulation | No | No | Yes | Sprint 8 |
+| Web UI / REST API | No | No | Yes | Sprint 9 |
+| Browser display streaming | No | No | Yes | Sprint 9 |
+| ARM type-0 support | No | No | Yes | Sprint 10 |
+| RISC-V type-0 support | No | No | Yes | Sprint 10 |
+| VFIO GPU passthrough | No | No | Yes | Sprint 10 |
+| Distro packages (COPR/PPA/AUR) | No | No | Yes | Sprint 11 |
+| Windows MSI / macOS DMG | No | No | Yes | Sprint 11 |
+| Virtual NAT networking | Yes | No | Yes | Sprint 11 |
+| WireGuard VPN tunnels | No | No | Yes | Sprint 11 |
+| VM template marketplace | No | No | Yes | Sprint 12 |
+| GuestFS (libguestfs equivalent) | No | No | Yes | Sprint 12 |
