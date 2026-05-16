@@ -11,9 +11,9 @@ class DownloadManager:
 		self,
 		url: str,
 		dest: str,
-		on_progress: Optional[Callable] = None,
-		on_done: Optional[Callable] = None,
-		on_error: Optional[Callable] = None,
+		on_progress: Optional[Callable[[int, int], None]] = None,
+		on_done: Optional[Callable[[str], None]] = None,
+		on_error: Optional[Callable[[str], None]] = None,
 	) -> DownloadWorker:
 		worker = DownloadWorker(url, dest)
 		if on_progress:

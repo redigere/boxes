@@ -7,7 +7,7 @@ import shutil
 import ctypes
 import threading
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional, cast, TYPE_CHECKING
 
 from boxes.backends import BaseBackend
 from boxes.backends.type0.kvm_device import KVMDevice
@@ -15,10 +15,15 @@ from boxes.backends.type0.xen_device import XenDevice
 from boxes.models.config import BoxConfig
 from boxes.models.machine import MachineState
 from boxes.constants import BOXES_IMAGES, BOXES_CONFIG
+if TYPE_CHECKING:
+    from boxes.services.container import PodmanManager
+
+_PodmanManager: type[PodmanManager] | None
 try:
     from boxes.services.container import PodmanManager
+    _PodmanManager = PodmanManager
 except ImportError:
-    PodmanManager = None
+    _PodmanManager = None
 
 
 class Type0Backend(BaseBackend):
@@ -26,11 +31,11 @@ class Type0Backend(BaseBackend):
 		super().__init__()
 		self._kvm = KVMDevice()
 		self._xen = XenDevice()
-		self._podman = PodmanManager() if PodmanManager is not None else None
+		self._podman = _PodmanManager() if _PodmanManager is not None else None
 		self._mode: str = ""
-		self._vms: dict[str, dict[str, Any]] = {}
+		self._vms: dict[str, dict[str, object]] = {}
 		self._vm_fds: dict[str, int] = {}
-		self._guest_mem: dict[str, Any] = {}
+		self._guest_mem: dict[str, object] = {}
 		self._vcpu_threads: dict[str, list[threading.Thread]] = {}
 		self._stop_events: dict[str, threading.Event] = {}
 
@@ -41,7 +46,7 @@ class Type0Backend(BaseBackend):
 	def _save_state(self) -> None:
 		data: dict[str, int] = {}
 		for uid, info in self._vms.items():
-			data[uid] = info.get("state", MachineState.STOPPED)
+			data[uid] = cast(int, info.get("state", MachineState.STOPPED))
 		BOXES_CONFIG.mkdir(parents=True, exist_ok=True)
 		self._state_path.write_text(json.dumps(data, indent=2))
 
@@ -49,7 +54,9 @@ class Type0Backend(BaseBackend):
 		if not self._state_path.exists():
 			return {}
 		try:
-			return json.loads(self._state_path.read_text())
+			data = json.loads(self._state_path.read_text())
+			assert isinstance(data, dict)
+			return cast(dict[str, int], data)
 		except (json.JSONDecodeError, OSError):
 			return {}
 
@@ -104,13 +111,13 @@ class Type0Backend(BaseBackend):
 		self._stop_events.clear()
 		self._connected = False
 
-	def list_machines(self) -> list[dict[str, Any]]:
+	def list_machines(self) -> list[dict[str, str | int | bool | None]]:
 		if self._mode == "xen" and self._xen.is_open:
 			result = subprocess.run(
 				["xl", "list"], capture_output=True, text=True, timeout=10
 			)
 			if result.returncode == 0:
-				machines: list[dict[str, Any]] = []
+				machines: list[dict[str, str | int | bool | None]] = []
 				lines = result.stdout.strip().split("\n")[1:]
 				for line in lines:
 					parts = line.split()
@@ -127,9 +134,9 @@ class Type0Backend(BaseBackend):
 		return [
 			{
 				"uuid": uid,
-				"name": info["config"].name,
-				"state": info.get("state", MachineState.STOPPED),
-				"active": info.get("state") == MachineState.RUNNING,
+				"name": cast(BoxConfig, info["config"]).name,
+				"state": cast(int, info.get("state", MachineState.STOPPED)),
+				"active": cast(int, info.get("state")) == MachineState.RUNNING,
 			}
 			for uid, info in self._vms.items()
 		]
@@ -162,7 +169,7 @@ class Type0Backend(BaseBackend):
 				return c
 		return None
 
-	def _ensure_vm(self, backend_id: str) -> Optional[dict[str, Any]]:
+	def _ensure_vm(self, backend_id: str) -> Optional[dict[str, object]]:
 		vm_info = self._vms.get(backend_id)
 		if vm_info is not None:
 			return vm_info
@@ -176,7 +183,7 @@ class Type0Backend(BaseBackend):
 		vm_info = self._ensure_vm(backend_id)
 		if vm_info is None:
 			return False
-		config: BoxConfig = vm_info["config"]
+		config: BoxConfig = cast(BoxConfig, vm_info["config"])
 
 		result = self._start_qemu_kvm(config, backend_id)
 		if result is not None:
@@ -213,7 +220,7 @@ class Type0Backend(BaseBackend):
 			return False
 
 		self._stop_vcpu_threads(backend_id)
-		proc = vm_info.get("proc")
+		proc = cast(Optional[subprocess.Popen[bytes]], vm_info.get("proc"))
 		if proc is not None:
 			try:
 				proc.terminate()
@@ -247,7 +254,7 @@ class Type0Backend(BaseBackend):
 			subprocess.run(
 				["xl", "pause", backend_id], capture_output=True, timeout=10
 			)
-		proc = vm_info.get("proc")
+		proc = cast(Optional[subprocess.Popen[bytes]], vm_info.get("proc"))
 		if proc is not None:
 			try:
 				proc.send_signal(signal.SIGSTOP)
@@ -265,7 +272,7 @@ class Type0Backend(BaseBackend):
 			subprocess.run(
 				["xl", "unpause", backend_id], capture_output=True, timeout=10
 			)
-		proc = vm_info.get("proc")
+		proc = cast(Optional[subprocess.Popen[bytes]], vm_info.get("proc"))
 		if proc is not None:
 			try:
 				proc.send_signal(signal.SIGCONT)
@@ -282,7 +289,7 @@ class Type0Backend(BaseBackend):
 			if config is not None:
 				return MachineState.STOPPED
 			return MachineState.STOPPED
-		return vm_info.get("state", MachineState.STOPPED)
+		return cast(int, vm_info.get("state", MachineState.STOPPED))
 
 	def delete_machine(self, backend_id: str, keep_disks: bool = False) -> bool:
 		self.shutdown_machine(backend_id)
@@ -327,7 +334,7 @@ class Type0Backend(BaseBackend):
 		vm_info = self._vms.get(backend_id)
 		if vm_info is None:
 			return None
-		return vm_info.get("display_port")
+		return cast(Optional[int], vm_info.get("display_port"))
 
 	def _start_kvm_direct(
 		self, config: BoxConfig, backend_id: str = ""
@@ -357,13 +364,9 @@ class Type0Backend(BaseBackend):
 				import fcntl
 
 				fcntl.ioctl(vm_fd, 0xAE47, 0xFFFBD000)
-			except (OSError, ImportError):
-				fcntl = None
-
-			try:
 				fcntl.ioctl(vm_fd, 0xAE60, 0)
-			except OSError:
-				fcntl = None
+			except (OSError, ImportError):
+				pass
 
 			num_vcpus = min(config.vcpus, 256)
 			for i in range(num_vcpus):
@@ -475,7 +478,7 @@ class Type0Backend(BaseBackend):
 
 	def _start_qemu_kvm(
 		self, config: BoxConfig, backend_id: str = ""
-	) -> Optional[tuple[subprocess.Popen, int]]:
+	) -> Optional[tuple[subprocess.Popen[bytes], int]]:
 		qemu = self._find_qemu()
 		if qemu is None:
 			qemu = self._auto_install_qemu()
@@ -610,7 +613,7 @@ class Type0Backend(BaseBackend):
 
 	def _start_xen_domain(
 		self, config: BoxConfig
-	) -> Optional[subprocess.Popen]:
+	) -> Optional[subprocess.Popen[bytes]]:
 		xl = shutil.which("xl")
 		if xl is None:
 			return None

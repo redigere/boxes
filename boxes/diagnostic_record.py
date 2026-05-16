@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Any
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -13,5 +12,5 @@ class DiagnosticRecord:
 	error_type: str = ""
 	error_message: str = ""
 	traceback: str = ""
-	context: dict[str, Any] = field(default_factory=dict)
+	context: dict[str, str | bool] = field(default_factory=dict)
 	resolution: str = ""

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-from typing import Optional
+from typing import Optional, cast
 
 
 class LibosinfoWrapper:
@@ -25,7 +25,7 @@ class LibosinfoWrapper:
 			self._available = self._osinfo_query is not None
 		return self._available
 
-	def list_oses(self) -> list[dict]:
+	def list_oses(self) -> list[dict[str, str]]:
 		"""List all operating systems known to libosinfo."""
 		if not self.available or not self._osinfo_query:
 			return self._fallback_list()
@@ -38,7 +38,7 @@ class LibosinfoWrapper:
 			)
 			if result.returncode != 0:
 				return self._fallback_list()
-			oses: list[dict] = []
+			oses: list[dict[str, str]] = []
 			for line in result.stdout.strip().split("\n"):
 				if not line.strip() or line.startswith("Short ID"):
 					continue
@@ -53,7 +53,7 @@ class LibosinfoWrapper:
 		except (subprocess.TimeoutExpired, FileNotFoundError):
 			return self._fallback_list()
 
-	def get_os(self, os_id: str) -> Optional[dict]:
+	def get_os(self, os_id: str) -> Optional[dict[str, str]]:
 		"""Get metadata for a specific OS."""
 		if not self.available or not self._osinfo_query:
 			return self._fallback_get(os_id)
@@ -78,14 +78,14 @@ class LibosinfoWrapper:
 		except (subprocess.TimeoutExpired, FileNotFoundError):
 			return self._fallback_get(os_id)
 
-	def get_minimum_resources(self, os_id: str) -> dict:
+	def get_minimum_resources(self, os_id: str) -> dict[str, int]:
 		"""Get minimum RAM and disk for a given OS."""
 		from boxes.models.osdb import OSDatabase
 
 		db = OSDatabase()
 		entry = db.get(os_id)
 		if entry:
-			return {"ram_mb": entry.get("ram", 1024), "disk_gb": entry.get("disk", 10)}
+			return {"ram_mb": cast(int, entry.get("ram", 1024)), "disk_gb": cast(int, entry.get("disk", 10))}
 		return {"ram_mb": 1024, "disk_gb": 10}
 
 	def detect_os_from_iso(self, iso_path: str) -> Optional[str]:
@@ -110,20 +110,20 @@ class LibosinfoWrapper:
 			return None
 
 	@staticmethod
-	def _fallback_list() -> list[dict]:
+	def _fallback_list() -> list[dict[str, str]]:
 		"""Fallback: return OS list from built-in OSDatabase."""
 		from boxes.models.osdb import OSDatabase
 
 		db = OSDatabase()
-		return [{"id": oid, "name": info["name"], "short_id": oid} for oid, info in db._entries.items()]
+		return [{"id": oid, "name": str(info["name"]), "short_id": oid} for oid, info in db._entries.items()]
 
 	@staticmethod
-	def _fallback_get(os_id: str) -> Optional[dict]:
+	def _fallback_get(os_id: str) -> Optional[dict[str, str]]:
 		"""Fallback: get OS info from built-in OSDatabase."""
 		from boxes.models.osdb import OSDatabase
 
 		db = OSDatabase()
 		entry = db.get(os_id)
 		if entry:
-			return {"id": os_id, "name": entry["name"], "short_id": os_id}
+			return {"id": os_id, "name": str(entry["name"]), "short_id": os_id}
 		return None

@@ -4,6 +4,8 @@ import time
 import subprocess
 from typing import Optional, Callable
 
+from boxes.backends import BaseBackend
+
 
 class BenchmarkRunner:
 	"""Performance benchmark suite for VM operations.
@@ -13,13 +15,13 @@ class BenchmarkRunner:
 	"""
 
 	def __init__(self) -> None:
-		self._results: dict[str, dict] = {}
+		self._results: dict[str, float] = {}
 		self._on_progress: Optional[Callable[[str, int], None]] = None
 
 	def set_progress_callback(self, callback: Optional[Callable[[str, int], None]]) -> None:
 		self._on_progress = callback
 
-	def measure_boot_time(self, backend_id: str, backend) -> Optional[float]:
+	def measure_boot_time(self, backend_id: str, backend: BaseBackend) -> Optional[float]:
 		"""Measure VM boot time from start to responsive state."""
 		start = time.monotonic()
 		if not backend.start_machine(backend_id):
@@ -38,13 +40,13 @@ class BenchmarkRunner:
 	def measure_disk_iops(
 		self,
 		backend_id: str,
-		backend,
+		backend: BaseBackend,
 		ssh_cmd: Optional[list[str]] = None,
-	) -> Optional[dict]:
+	) -> Optional[dict[str, float]]:
 		"""Measure disk IOPS using 'dd' or 'fio' in the guest."""
 		if not ssh_cmd:
 			return None
-		results: dict = {}
+		results: dict[str, float] = {}
 		try:
 			result = subprocess.run(
 				ssh_cmd + [
@@ -82,14 +84,15 @@ class BenchmarkRunner:
 							break
 		except (subprocess.TimeoutExpired, FileNotFoundError):
 			return None
+		return results
 
 	def measure_network_throughput(
 		self,
 		guest_ip: str,
 		duration: int = 10,
-	) -> Optional[dict]:
+	) -> Optional[dict[str, float]]:
 		"""Measure network throughput using iperf3 to the guest."""
-		results: dict = {}
+		results: dict[str, float] = {}
 		try:
 			result = subprocess.run(
 				["iperf3", "-c", guest_ip, "-t", str(duration), "-J"],
@@ -104,8 +107,9 @@ class BenchmarkRunner:
 				results["mbps"] = data["end"]["sum_received"].get("bits_per_second", 0) / 1_000_000
 		except (subprocess.TimeoutExpired, FileNotFoundError, json.JSONDecodeError, ValueError):
 			return None
+		return results
 
-	def measure_memory_bandwidth(self, ssh_cmd: Optional[list[str]] = None) -> Optional[dict]:
+	def measure_memory_bandwidth(self, ssh_cmd: Optional[list[str]] = None) -> Optional[dict[str, float]]:
 		"""Measure memory bandwidth using mbw in the guest."""
 		if not ssh_cmd:
 			return None
@@ -116,7 +120,7 @@ class BenchmarkRunner:
 				text=True,
 				timeout=30,
 			)
-			results: dict = {}
+			results: dict[str, float] = {}
 			for line in result.stdout.split("\n"):
 				if "MEMCPY" in line:
 					parts = line.strip().split()
@@ -136,7 +140,7 @@ class BenchmarkRunner:
 		except (subprocess.TimeoutExpired, FileNotFoundError):
 			return None
 
-	def run_all(self, backend_id: str, backend) -> dict:
+	def run_all(self, backend_id: str, backend: BaseBackend) -> dict[str, float]:
 		"""Run all benchmarks and return results."""
 		self._results = {}
 		if self._on_progress:
@@ -146,7 +150,7 @@ class BenchmarkRunner:
 			self._results["boot_time_seconds"] = boot
 		return self._results
 
-	def get_results(self) -> dict:
+	def get_results(self) -> dict[str, float]:
 		return dict(self._results)
 
 	def clear(self) -> None:

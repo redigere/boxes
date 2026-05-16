@@ -24,7 +24,7 @@ class PodmanManager:
 
 	def _run(
 		self, args: list[str], timeout: int = 60, text: bool = True
-	) -> Optional[subprocess.CompletedProcess]:
+	) -> Optional[subprocess.CompletedProcess[str]]:
 		try:
 			return subprocess.run(
 				self._podman_cmd() + args,
@@ -99,7 +99,7 @@ class PodmanManager:
 		)
 		return install is not None and install.returncode == 0
 
-	def exec(self, cmd: list[str], timeout: int = 30) -> Optional[subprocess.CompletedProcess]:
+	def exec(self, cmd: list[str], timeout: int = 30) -> Optional[subprocess.CompletedProcess[str]]:
 		if not self.container_running():
 			return None
 		return self._run(["exec", self.CONTAINER] + cmd, timeout=timeout)

@@ -4,7 +4,7 @@ import os
 import traceback
 import subprocess
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional
 
 
 from boxes.diagnostic_record import DiagnosticRecord
@@ -21,7 +21,7 @@ class RootCause:
 		component: str,
 		success: bool,
 		error: Optional[Exception] = None,
-		context: Optional[dict[str, Any]] = None,
+		context: Optional[dict[str, str | bool]] = None,
 		resolution: str = "",
 	) -> DiagnosticRecord:
 		rec = DiagnosticRecord(
@@ -51,8 +51,8 @@ class RootCause:
 			resolution=resolution,
 		)
 
-	def _gather_context(self, component: str) -> dict[str, Any]:
-		ctx: dict[str, Any] = {
+	def _gather_context(self, component: str) -> dict[str, str | bool]:
+		ctx: dict[str, str | bool] = {
 			"python": sys.version,
 			"platform": sys.platform,
 			"cwd": os.getcwd(),

@@ -249,7 +249,7 @@ class VNCClient:
 		self._connected = False
 		self._width: int = 640
 		self._height: int = 480
-		self._pixel_format: Optional[dict] = None
+		self._pixel_format: Optional[dict[str, int | bool]] = None
 		self._name: str = ""
 		self._framebuffer: Optional[bytearray] = None
 		self._on_framebuffer_update: Optional[Callable[[bytes, int, int, int, int], None]] = None

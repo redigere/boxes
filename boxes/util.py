@@ -1,3 +1,4 @@
+import platform
 import shutil
 import subprocess
 import os
@@ -81,7 +82,7 @@ def check_hyperv_available() -> bool:
 
 
 def check_macos_hvf_available() -> bool:
-	if sys.platform != "darwin":
+	if platform.system() != "Darwin":
 		return False
 	try:
 		result = subprocess.run(

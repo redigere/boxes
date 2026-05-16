@@ -12,7 +12,7 @@ class MigrationManager:
 	"""
 
 	def __init__(self) -> None:
-		self._active_migrations: dict[str, dict] = {}
+		self._active_migrations: dict[str, dict[str, str | int]] = {}
 		self._on_progress: Optional[Callable[[str, int], None]] = None
 
 	def set_progress_callback(self, callback: Optional[Callable[[str, int], None]]) -> None:
@@ -99,7 +99,7 @@ class MigrationManager:
 		self._active_migrations[migration_id]["status"] = "cancelled"
 		return True
 
-	def get_status(self, migration_id: str) -> Optional[dict]:
+	def get_status(self, migration_id: str) -> Optional[dict[str, str | int]]:
 		"""Get the status of a migration."""
 		return self._active_migrations.get(migration_id)
 

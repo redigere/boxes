@@ -1,5 +1,10 @@
-from typing import Optional
+from __future__ import annotations
+
+from typing import Optional, TYPE_CHECKING, cast
 from boxes.backends import BaseBackend
+
+if TYPE_CHECKING:
+    import libvirt
 from boxes.models.config import BoxConfig
 from boxes.models.machine import MachineState
 
@@ -13,15 +18,11 @@ class LibvirtBackend(BaseBackend):
 		self.capabilities.shared_folders = True
 		self.capabilities.storage_pools = True
 		self.capabilities.networks = True
-		self._conn = None
-		self._libvirt = None
+		self._conn: libvirt.libvirt | None = None
 
-	def _import_libvirt(self):
-		if self._libvirt is None:
-			import libvirt as _lv
-
-			self._libvirt = _lv
-		return self._libvirt
+	def _import_libvirt(self) -> libvirt.libvirt:
+		import libvirt as _lv
+		return _lv
 
 	def connect(self) -> bool:
 		try:
@@ -43,7 +44,7 @@ class LibvirtBackend(BaseBackend):
 	def connected(self) -> bool:
 		return self._conn is not None
 
-	def list_machines(self) -> list[dict]:
+	def list_machines(self) -> list[dict[str, str | int | bool | None]]:
 		if not self.connected or self._conn is None:
 			return []
 		results = []
@@ -77,6 +78,7 @@ class LibvirtBackend(BaseBackend):
 				)
 		except Exception:
 			return results
+		return results
 
 	def define_machine(self, config: BoxConfig) -> Optional[str]:
 		if not self.connected or self._conn is None:
@@ -84,7 +86,7 @@ class LibvirtBackend(BaseBackend):
 		xml = self._build_domain_xml(config)
 		try:
 			dom = self._conn.defineXML(xml)
-			return dom.UUIDString()
+			return cast(str, dom.UUIDString())
 		except Exception:
 			return None
 
@@ -150,6 +152,7 @@ class LibvirtBackend(BaseBackend):
 				vol.delete(0)
 			except Exception:
 				return True
+			return True
 		except Exception:
 			return False
 

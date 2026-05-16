@@ -17,7 +17,7 @@ class AuthManager:
 
 	def __init__(self) -> None:
 		self._credentials_path = BOXES_CONFIG / "credentials.json"
-		self._credentials: dict[str, dict] = {}
+		self._credentials: dict[str, dict[str, str]] = {}
 		self._load()
 
 	def _load(self) -> None:
@@ -42,7 +42,7 @@ class AuthManager:
 		}
 		self._save()
 
-	def get_credential(self, key: str) -> Optional[dict]:
+	def get_credential(self, key: str) -> Optional[dict[str, str]]:
 		"""Retrieve a stored credential."""
 		return self._credentials.get(key)
 
@@ -54,7 +54,7 @@ class AuthManager:
 			return True
 		return False
 
-	def list_credentials(self) -> dict[str, dict]:
+	def list_credentials(self) -> dict[str, dict[str, str]]:
 		"""List all stored credential keys."""
 		return dict(self._credentials)
 

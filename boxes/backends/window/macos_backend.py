@@ -1,4 +1,6 @@
-from typing import Optional
+from __future__ import annotations
+
+from typing import Optional, cast
 import subprocess
 
 from boxes.backends import BaseBackend
@@ -15,7 +17,7 @@ class MacOSBackend(BaseBackend):
 		self.capabilities.shared_folders = False
 		self.capabilities.networks = True
 		self._connected = False
-		self._vms: dict[str, dict] = {}
+		self._vms: dict[str, dict[str, object]] = {}
 
 	def _run(self, cmd: list[str]) -> Optional[str]:
 		try:
@@ -54,7 +56,7 @@ class MacOSBackend(BaseBackend):
 
 	def disconnect(self) -> None:
 		for vm_info in self._vms.values():
-			proc = vm_info.get("proc")
+			proc = cast(Optional[subprocess.Popen[bytes]], vm_info.get("proc"))
 			if proc is not None:
 				try:
 					proc.terminate()
@@ -67,13 +69,13 @@ class MacOSBackend(BaseBackend):
 	def connected(self) -> bool:
 		return self._connected
 
-	def list_machines(self) -> list[dict]:
+	def list_machines(self) -> list[dict[str, str | int | bool | None]]:
 		return [
 			{
 				"uuid": uid,
-				"name": info["config"].name,
-				"state": info["state"],
-				"active": info["state"] == MachineState.RUNNING,
+				"name": cast(BoxConfig, info["config"]).name,
+				"state": cast(int, info["state"]),
+				"active": cast(int, info["state"]) == MachineState.RUNNING,
 			}
 			for uid, info in self._vms.items()
 		]
@@ -96,13 +98,13 @@ class MacOSBackend(BaseBackend):
 
 		with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as s:
 			s.bind(("", 0))
-			return s.getsockname()[1]
+			return cast(int, s.getsockname()[1])
 
 	def start_machine(self, backend_id: str) -> bool:
 		vm_info = self._vms.get(backend_id)
 		if vm_info is None:
 			return False
-		config = vm_info["config"]
+		config = cast(BoxConfig, vm_info["config"])
 		binary = getattr(self, "_qemu_binary", "qemu-system-x86_64")
 		display_port = self._get_display_port()
 		cmd = [
@@ -149,7 +151,7 @@ class MacOSBackend(BaseBackend):
 		vm_info = self._vms.get(backend_id)
 		if vm_info is None:
 			return False
-		proc = vm_info.get("proc")
+		proc = cast(Optional[subprocess.Popen[bytes]], vm_info.get("proc"))
 		if proc is not None:
 			try:
 				proc.terminate()
@@ -168,7 +170,7 @@ class MacOSBackend(BaseBackend):
 			return False
 		import signal as _signal
 
-		proc = vm_info.get("proc")
+		proc = cast(Optional[subprocess.Popen[bytes]], vm_info.get("proc"))
 		if proc is not None:
 			try:
 				proc.send_signal(_signal.SIGSTOP)
@@ -183,7 +185,7 @@ class MacOSBackend(BaseBackend):
 			return False
 		import signal as _signal
 
-		proc = vm_info.get("proc")
+		proc = cast(Optional[subprocess.Popen[bytes]], vm_info.get("proc"))
 		if proc is not None:
 			try:
 				proc.send_signal(_signal.SIGCONT)
@@ -206,7 +208,7 @@ class MacOSBackend(BaseBackend):
 		vm_info = self._vms.get(backend_id)
 		if vm_info is None:
 			return MachineState.STOPPED
-		return vm_info["state"]
+		return cast(int, vm_info["state"])
 
 	def create_disk_image(self, path: str, size_gb: int) -> bool:
 		try:
@@ -224,7 +226,7 @@ class MacOSBackend(BaseBackend):
 		vm_info = self._vms.get(backend_id)
 		if vm_info is None:
 			return None
-		return vm_info.get("display_port")
+		return cast(Optional[int], vm_info.get("display_port"))
 
 	@staticmethod
 	def _which(name: str) -> Optional[str]:

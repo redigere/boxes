@@ -61,6 +61,8 @@ class VNCServer:
 	def _accept_loop(self) -> None:
 		while self._running:
 			try:
+				if self._server_sock is None:
+					break
 				client, addr = self._server_sock.accept()
 				self._clients.append(client)
 				if self._on_client_connect:

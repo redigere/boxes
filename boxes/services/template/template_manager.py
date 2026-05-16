@@ -79,7 +79,7 @@ class TemplateManager:
 			tpl_path.unlink()
 		return True
 
-	def list(self) -> list[VMTemplate]:
+	def list_templates(self) -> list[VMTemplate]:
 		return list(self._templates.values())
 
 	def list_names(self) -> list[str]:
@@ -88,7 +88,7 @@ class TemplateManager:
 	def count(self) -> int:
 		return len(self._templates)
 
-	def apply(self, name: str, overrides: Optional[dict] = None) -> Optional[VMTemplate]:
+	def apply(self, name: str, overrides: Optional[dict[str, object]] = None) -> Optional[VMTemplate]:
 		"""Get a template with optional overrides applied."""
 		tpl = self._templates.get(name)
 		if tpl is None:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 import subprocess
 import os
@@ -61,7 +63,7 @@ class XenBackend(BaseBackend):
 		except (subprocess.TimeoutExpired, FileNotFoundError):
 			return None
 
-	def list_machines(self) -> list[dict]:
+	def list_machines(self) -> list[dict[str, str | int | bool | None]]:
 		out = self._run_xl("list -l")
 		if out is None:
 			return []

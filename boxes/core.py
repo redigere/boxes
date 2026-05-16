@@ -93,8 +93,8 @@ class BoxesCore:
 		name = type(self.backend).__name__
 		return name.replace("Backend", "")
 
-	def list_vms(self) -> list[dict]:
-		results: list[dict] = []
+	def list_vms(self) -> list[dict[str, str | int]]:
+		results: list[dict[str, str | int]] = []
 		try:
 			configs = BoxConfig.list_all()
 		except Exception as exc:
@@ -250,7 +250,7 @@ class BoxesCore:
 			rc.diagnose(exc, self.backend_name, f"delete_vm:{name}")
 			return False, f"Failed to delete VM '{config.name}': {exc}"
 
-	def vm_info(self, name: str) -> Optional[dict]:
+	def vm_info(self, name: str) -> Optional[dict[str, str | int | None]]:
 		config = self.find_vm(name)
 		if config is None:
 			return None
@@ -290,7 +290,7 @@ class BoxesCore:
 			"display_port": display_port,
 		}
 
-	def backend_info(self) -> dict:
+	def backend_info(self) -> dict[str, str | bool]:
 		try:
 			caps = self.backend.capabilities
 			connected = self.backend.connected

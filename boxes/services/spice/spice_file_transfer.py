@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Callable
+from typing import Optional, Callable, cast
 
 from boxes.services.spice.spice_channel import SPICEChannel
 
@@ -17,7 +17,7 @@ class SPICEFileTransfer:
 
 	def __init__(self, channel: SPICEChannel) -> None:
 		self._channel = channel
-		self._active_transfers: dict[str, dict] = {}
+		self._active_transfers: dict[str, dict[str, str | int]] = {}
 
 	def send_file(
 		self,
@@ -45,12 +45,10 @@ class SPICEFileTransfer:
 			with open(src, "rb") as f:
 				while chunk := f.read(self.CHUNK_SIZE):
 					self._channel.send(chunk)
-					self._active_transfers[transfer_id]["sent"] += len(chunk)
+					sent = cast(int, self._active_transfers[transfer_id]["sent"]) + len(chunk)
+					self._active_transfers[transfer_id]["sent"] = sent
 					if on_progress:
-						on_progress(
-							self._active_transfers[transfer_id]["sent"],
-							file_size,
-						)
+						on_progress(sent, file_size)
 			self._channel.send(b"DONE")
 			return True
 		except (ConnectionError, OSError):

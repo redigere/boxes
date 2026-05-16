@@ -16,7 +16,7 @@ from boxes.models.config import BoxConfig
 class QEMUProcess:
 	def __init__(self, config: BoxConfig) -> None:
 		self.config = config
-		self.process: Optional[subprocess.Popen] = None
+		self.process: Optional[subprocess.Popen[bytes]] = None
 		self.monitor_port: Optional[int] = None
 		self.display_port: Optional[int] = None
 		self.qmp_socket: Optional[str] = None
@@ -82,7 +82,7 @@ class QEMUProcess:
 				return False
 		return False
 
-	def send_qmp(self, cmd: dict) -> Optional[dict]:
+	def send_qmp(self, cmd: dict[str, object]) -> Optional[dict[str, object]]:
 		try:
 			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			s.settimeout(5)
@@ -93,7 +93,9 @@ class QEMUProcess:
 			s.sendall(json.dumps(cmd).encode())
 			resp = s.recv(65536).decode()
 			s.close()
-			return json.loads(resp)
+			resp_data = json.loads(resp)
+			assert isinstance(resp_data, dict)
+			return resp_data
 		except Exception:
 			return None
 
@@ -105,10 +107,14 @@ class QEMUProcess:
 			return "stopped"
 		resp = self.send_qmp({"execute": "query-status"})
 		if resp and "return" in resp:
-			return resp["return"].get("status", "running").lower()
+			return_val = resp["return"]
+			assert isinstance(return_val, dict)
+			return str(return_val.get("status", "running")).lower()
 		return "running"
 
 	def _find_free_port(self) -> int:
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 			s.bind(("", 0))
-			return s.getsockname()[1]
+			port = s.getsockname()[1]
+			assert isinstance(port, int)
+			return port

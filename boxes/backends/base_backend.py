@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Optional
 
 from boxes.backends.backend_capabilities import BackendCapabilities
@@ -20,7 +21,7 @@ class BaseBackend:
 	def connected(self) -> bool:
 		return self._connected
 
-	def list_machines(self) -> list[dict]:
+	def list_machines(self) -> list[dict[str, str | int | bool | None]]:
 		return []
 
 	def define_machine(self, config: BoxConfig) -> Optional[str]:

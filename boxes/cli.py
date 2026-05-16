@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import sys
 from pathlib import Path
@@ -5,9 +7,9 @@ from pathlib import Path
 from boxes.core import BoxesCore
 
 
-def _print_vm(vm: dict) -> None:
+def _print_vm(vm: dict[str, str | int]) -> None:
 	state_color = {"Running": "32", "Paused": "33", "Off": "90", "Sleeping": "34", "Crashed": "91"}
-	code = state_color.get(vm["state"], "0")
+	code = state_color.get(str(vm["state"]), "0")
 	print(
 		f"  \033[{code}m{vm['state']:>8}\033[0m  {vm['name']:<30}  "
 		f"{vm['memory_mb']:>5} MB  {vm['vcpus']} vCPU  {vm['disk_gb']:>3} GB  "
@@ -113,9 +115,6 @@ def cmd_download(args: argparse.Namespace, core: BoxesCore) -> None:
 	except Exception as exc:
 		print(f"Error downloading ISO: {exc}", file=sys.stderr)
 		sys.exit(1)
-	if dest is None:
-		print("Download failed.", file=sys.stderr)
-		sys.exit(1)
 	if args.start:
 		start_name = args.start
 		vm = core.find_vm(start_name)
@@ -175,8 +174,8 @@ def cmd_info(args: argparse.Namespace, core: BoxesCore) -> None:
 		vms = core.list_vms()
 		if vms:
 			print(f"\nVMs ({len(vms)}):")
-			for vm in vms:
-				print(f"  {vm['name']:<30} {vm['state']:>8}  {vm['os_type']}")
+			for entry in vms:
+				print(f"  {entry['name']:<30} {entry['state']:>8}  {entry['os_type']}")
 		else:
 			print("\nNo VMs configured.")
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 import subprocess
 import time
@@ -32,8 +34,8 @@ class QEMUBackend(BaseBackend):
 	def connected(self) -> bool:
 		return self._connected
 
-	def list_machines(self) -> list[dict]:
-		results = []
+	def list_machines(self) -> list[dict[str, str | int | bool | None]]:
+		results: list[dict[str, str | int | bool | None]] = []
 		for uuid, proc in self._processes.items():
 			status = proc.query_status()
 			results.append(

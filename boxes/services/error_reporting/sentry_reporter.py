@@ -44,7 +44,7 @@ class SentryReporter:
 			self._reports_dir = Path(dir_path)
 		self._reports_dir.mkdir(parents=True, exist_ok=True)
 
-	def capture_exception(self, exc: Exception, context: Optional[dict] = None) -> Optional[str]:
+	def capture_exception(self, exc: Exception, context: Optional[dict[str, object]] = None) -> Optional[str]:
 		"""Capture an exception and report it.
 
 		Returns a report ID on success, None if reporting is disabled.
@@ -52,7 +52,7 @@ class SentryReporter:
 		if self.mode == self.MODE_DISABLED:
 			return None
 		report_id = str(uuid.uuid4())
-		report = {
+		report: dict[str, object] = {
 			"report_id": report_id,
 			"session_id": self._session_id,
 			"timestamp": datetime.now().isoformat(),
@@ -70,16 +70,16 @@ class SentryReporter:
 			self._send_to_sentry(report)
 		return report_id
 
-	def _write_report(self, report_id: str, report: dict) -> None:
+	def _write_report(self, report_id: str, report: dict[str, object]) -> None:
 		"""Write an error report to the local filesystem."""
 		self._reports_dir.mkdir(parents=True, exist_ok=True)
 		report_path = self._reports_dir / f"{report_id}.json"
 		report_path.write_text(json.dumps(report, indent=2))
 
-	def _send_to_sentry(self, report: dict) -> None:
+	def _send_to_sentry(self, report: dict[str, object]) -> None:
 		"""Send an error report to Sentry (placeholder)."""
 		if not self._dsn:
-			self._write_report(report["report_id"], report)
+			self._write_report(str(report["report_id"]), report)
 			return
 		try:
 			import urllib.request
@@ -93,9 +93,9 @@ class SentryReporter:
 			)
 			urllib.request.urlopen(req, timeout=10)
 		except (OSError, ImportError):
-			self._write_report(report["report_id"], report)
+			self._write_report(str(report["report_id"]), report)
 
-	def list_reports(self) -> list[dict]:
+	def list_reports(self) -> list[dict[str, object]]:
 		"""List all local error reports."""
 		if not self._reports_dir.exists():
 			return []

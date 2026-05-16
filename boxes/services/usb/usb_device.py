@@ -96,6 +96,7 @@ def enumerate_usb_devices() -> list[USBDevice]:
 				continue
 	except (subprocess.TimeoutExpired, FileNotFoundError):
 		return devices
+	return devices
 
 
 def _find_lsusb() -> Optional[str]:

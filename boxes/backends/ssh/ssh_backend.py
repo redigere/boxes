@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 import subprocess
 import re
@@ -51,11 +53,11 @@ class SSHBackend(BaseBackend):
 	def connected(self) -> bool:
 		return self._connected
 
-	def list_machines(self) -> list[dict]:
+	def list_machines(self) -> list[dict[str, str | int | bool | None]]:
 		out = self._ssh("virsh list --all --uuid --name --state")
 		if out is None:
 			return self._migrate_list()
-		results = []
+		results: list[dict[str, str | int | bool | None]] = []
 		for line in out.split("\n"):
 			parts = line.strip().split()
 			if len(parts) >= 3:
@@ -69,11 +71,11 @@ class SSHBackend(BaseBackend):
 				)
 		return results
 
-	def _migrate_list(self) -> list[dict]:
+	def _migrate_list(self) -> list[dict[str, str | int | bool | None]]:
 		out = self._ssh("virsh list --all")
 		if out is None:
 			return []
-		results = []
+		results: list[dict[str, str | int | bool | None]] = []
 		for line in out.split("\n"):
 			parts = line.strip().split()
 			if len(parts) >= 5 and parts[0].isdigit():
@@ -147,7 +149,7 @@ class SSHBackend(BaseBackend):
 			return int(match.group(1))
 		return None
 
-	def get_host_info(self) -> Optional[dict]:
+	def get_host_info(self) -> Optional[dict[str, str]]:
 		info = self._ssh("virsh nodeinfo")
 		if info is None:
 			return None
@@ -158,7 +160,7 @@ class SSHBackend(BaseBackend):
 				result[k.strip().lower().replace(" ", "_")] = v.strip()
 		return result
 
-	def list_storage_pools(self) -> list[dict]:
+	def list_storage_pools(self) -> list[dict[str, str]]:
 		out = self._ssh("virsh pool-list --all --details")
 		if out is None:
 			return []
@@ -176,7 +178,7 @@ class SSHBackend(BaseBackend):
 				)
 		return results
 
-	def list_networks(self) -> list[dict]:
+	def list_networks(self) -> list[dict[str, str]]:
 		out = self._ssh("virsh net-list --all")
 		if out is None:
 			return []

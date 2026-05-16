@@ -16,7 +16,7 @@ except ImportError:
     QPixmap = type("QPixmap", (object,), {})
 
 from boxes.models.config import BoxConfig
-from boxes.models.machine_state import MachineState
+from boxes.models.machine_state import MachineState as MachineState
 
 
 class Machine(QObject):

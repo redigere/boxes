@@ -1,4 +1,6 @@
-from typing import Optional
+from __future__ import annotations
+
+from typing import Optional, cast
 import subprocess
 
 from boxes.backends import BaseBackend
@@ -13,7 +15,7 @@ class HyperVBackend(BaseBackend):
 		self.capabilities.networks = True
 		self.capabilities.usb_redirection = False
 		self._connected = False
-		self._vms: dict[str, dict] = {}
+		self._vms: dict[str, dict[str, object]] = {}
 
 	def _ps(self, command: str) -> Optional[str]:
 		try:
@@ -45,7 +47,7 @@ class HyperVBackend(BaseBackend):
 	def connected(self) -> bool:
 		return self._connected
 
-	def list_machines(self) -> list[dict]:
+	def list_machines(self) -> list[dict[str, str | int | bool | None]]:
 		out = self._ps(
 			"Get-VM | Select-Object Name,Id,State,MemoryStartup,CPUUsage | ConvertTo-Json"
 		)
@@ -98,7 +100,7 @@ class HyperVBackend(BaseBackend):
 		vm_info = self._vms.get(backend_id)
 		if vm_info is None:
 			return False
-		name = vm_info["config"].name
+		name = cast(BoxConfig, vm_info["config"]).name
 		result = self._ps(f"Start-VM -Name '{name}'")
 		if result is not None:
 			vm_info["state"] = MachineState.RUNNING
@@ -109,7 +111,7 @@ class HyperVBackend(BaseBackend):
 		vm_info = self._vms.get(backend_id)
 		if vm_info is None:
 			return False
-		name = vm_info["config"].name
+		name = cast(BoxConfig, vm_info["config"]).name
 		result = self._ps(f"Stop-VM -Name '{name}' -Force")
 		if result is not None:
 			vm_info["state"] = MachineState.STOPPED
@@ -120,7 +122,7 @@ class HyperVBackend(BaseBackend):
 		vm_info = self._vms.get(backend_id)
 		if vm_info is None:
 			return False
-		name = vm_info["config"].name
+		name = cast(BoxConfig, vm_info["config"]).name
 		result = self._ps(f"Suspend-VM -Name '{name}'")
 		if result is not None:
 			vm_info["state"] = MachineState.PAUSED
@@ -131,7 +133,7 @@ class HyperVBackend(BaseBackend):
 		vm_info = self._vms.get(backend_id)
 		if vm_info is None:
 			return False
-		name = vm_info["config"].name
+		name = cast(BoxConfig, vm_info["config"]).name
 		result = self._ps(f"Resume-VM -Name '{name}'")
 		if result is not None:
 			vm_info["state"] = MachineState.RUNNING
@@ -141,7 +143,7 @@ class HyperVBackend(BaseBackend):
 	def delete_machine(self, backend_id: str, keep_disks: bool = False) -> bool:
 		vm_info = self._vms.get(backend_id)
 		if vm_info is not None:
-			name = vm_info["config"].name
+			name = cast(BoxConfig, vm_info["config"]).name
 			self._ps(f"Stop-VM -Name '{name}' -TurnOff -ErrorAction SilentlyContinue")
 			self._ps(f"Remove-VM -Name '{name}' -Force")
 			self._vms.pop(backend_id, None)
@@ -151,7 +153,7 @@ class HyperVBackend(BaseBackend):
 		vm_info = self._vms.get(backend_id)
 		if vm_info is None:
 			return MachineState.STOPPED
-		return vm_info["state"]
+		return cast(int, vm_info["state"])
 
 	def create_disk_image(self, path: str, size_gb: int) -> bool:
 		vhdx_path = path.replace(".qcow2", ".vhdx")

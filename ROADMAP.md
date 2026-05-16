@@ -483,7 +483,7 @@ type-0 VMs.
 
 | # | Task | Status | Module |
 |---|------|--------|--------|
-| 8.1 | Native qcow2 format parser/writer (header, clusters, refcounts) | Planned | backends/type0/storage/qcow2.py |
+| 8.1 | Native qcow2 format parser/writer (header, clusters, refcounts) | Done | backends/type0/storage/qcow2.py |
 | 8.2 | Native qcow2 overlay chain (snapshot without qemu-img) | Planned | backends/type0/storage/qcow2.py |
 | 8.3 | Native VHDX parser/writer for Hyper-V backend | Planned | backends/type0/storage/vhdx.py |
 | 8.4 | Zero-copy virtio-blk via KVM_SET_USER_MEMORY_REGION | Planned | backends/type0/kvm_device.py |

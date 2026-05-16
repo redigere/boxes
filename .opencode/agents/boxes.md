@@ -2,7 +2,7 @@
 description: >
   Boxes hypervisor manager. Type-0 first (KVM ioctl/Xen hypercall), QEMU/libvirt
   fallback. CLI (argparse) + optional PyQt6 GUI. Flatpak distribution. 1C1F strict.
-  Root-cause diagnostics. Zero external runtime deps. TAB indentation only.
+  Root-cause diagnostics. Zero external runtime deps. Strict typing. TAB indentation only.
   Use ONLY when working on the boxes project.
 mode: primary
 permission:
@@ -46,8 +46,15 @@ These rules are enforced for all Python code produced:
   Style reference: `ROADMAP.md`.
 - **1C1F strict**: one class per file, no exceptions. File name = snake_case
   of class name (e.g. `MachineState` -> `machine_state.py`).
-- **No placeholders, no bare pass**: every method must have a real
-  implementation. Empty bodies are rejected.
+- **Strict typing enforced**: every function signature must have full
+  type annotations for all parameters and return values. No `Any`, no
+  `object` as type escape hatch, no untyped variables. Use `Optional[X]`
+  for nullable values, `Union[X, Y]` for multi-type, `Sequence`/`Mapping`
+  for collections. `# type: ignore` is banned.
+- **No placeholders, no fallbacks, no workarounds, no bare pass**: every
+  method must have a real implementation. No `TODO`, `FIXME`, `XXX`,
+  `NotImplementedError`, `...` (Ellipsis), or `pass` as a stub. Empty
+  bodies are rejected. Every code path must be correctly implemented.
 - **Type-0 first**: prioritise `KVMDevice`/`XenDevice` over QEMU/libvirt.
   The `detect_backend()` helper in `core.py` tries type-0, then xen, then
   libvirt, then qemu, then hyperv, then macos.
@@ -65,8 +72,9 @@ These rules are enforced for all Python code produced:
   methods in `core.py`, `cli.py`, and backends use `rc.diagnose()`.
 - **All cache patterns in `.gitignore`**: `*cache*`, `*Cache*`,
   `__pycache__/`, `.mypy_cache/`, `.ruff_cache/`.
-- **CI runs with stdlib only**: no system Qt dependencies, no mypy, no
-  `ruff format`. Tests must pass with only Python stdlib installed.
+- **CI runs with stdlib only**: no system Qt dependencies, no `ruff format`.
+  mypy runs in strict mode on all `.py` files. Tests must pass with only
+  Python stdlib installed.
 - **commit messages must be single-line**: one line only, no body.
 
 ## File layout
@@ -90,7 +98,7 @@ These rules are enforced for all Python code produced:
 - `__init__.py` - exports BaseBackend, BackendCapabilities
 - `base_backend.py` - abstract base class
 - `backend_capabilities.py` - capability flags
-- `type0/` - KVMDevice, XenDevice, XenBackend, Type0Backend
+- `type0/` - KVMDevice, XenDevice, XenBackend, Type0Backend, `storage/` (Qcow2Image)
 - `qemu/` - QEMUBackend, QEMUProcess
 - `libvirt_backend.py` - LibvirtBackend
 - `ssh/` - SSHBackend, SSHConfig
@@ -140,7 +148,7 @@ These rules are enforced for all Python code produced:
 
 ## Testing
 
-- **87 tests** spread across `tests/`:
+- **87 tests** (Sprint 8 adds native qcow2 module) spread across `tests/`:
   - `test_imports.py` (8) - module import verification
   - `test_models.py` (18) - model unit tests
   - `test_util.py` (7) - utility function tests
@@ -149,13 +157,14 @@ These rules are enforced for all Python code produced:
 - Always run `python -m pytest tests/ -q` after changes.
 - Conditional download E2E: set `BOXES_SKIP_DOWNLOAD=1` to skip large ISO
   downloads in CI. On `push-to-master`, full Alpine ISO (~300 MB) is tested.
-- CI uses stdlib-only test runs. No Qt headless, no mypy, no `ruff format`.
-  `ruff check` still runs for lint but `ruff format` is excluded.
+- CI uses stdlib-only test runs. No Qt headless, no `ruff format`.
+  `ruff check` runs for lint. mypy strict mode runs on all `.py` files.
+  `ruff format` is excluded.
 
 ## CI and tooling
 
 - `.github/workflows/ci.yml`: test and package jobs with stdlib-only Python.
-  No system Qt or mypy. Lint uses `ruff check` only (no format step).
+  No system Qt. Lint uses `ruff check` + `mypy --strict` (no format step).
 - `.pre-commit-config.yaml`: ruff (lint only, no format), mypy disabled,
   trailing-whitespace, end-of-file-fixer, check-yaml/toml,
   detect-private-key.
@@ -186,9 +195,7 @@ These rules are enforced for all Python code produced:
    ui, tests). Always import from `machine_state.py` in new code;
    backward compat via `machine.py` allows `from boxes.models.machine import
    MachineState`.
-6. **Alpine ISO URL** for testing:
-   `https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/x86_64/alpine-standard-3.21.3-x86_64.iso`
-7. **`boxes download`** subcommand uses sync `download_file()` from
+6. **`boxes download`** subcommand uses sync `download_file()` from
    `boxes/util.py`. The Qt-dependent `DownloadWorker` (QThread) is in
    `download_worker.py` and used only when a GUI is present.
 8. **Strict error handling**: all `BoxesCore` public methods,
