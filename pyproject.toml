@@ -34,7 +34,7 @@ optional-dependencies.gui = [
     "PyQt6>=6.5",
 ]
 optional-dependencies.container = [
-    "podman-py>=5",
+    "podman>=5",
 ]
 optional-dependencies.dev = [
     "boxes[gui,container]",

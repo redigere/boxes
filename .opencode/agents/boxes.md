@@ -33,7 +33,7 @@ These rules are enforced for all Python code produced:
 - **TAB indentation only**. Zero space indentation permitted anywhere.
   Every `.py` file must use TABs exclusively.
 - **Zero external runtime dependencies**. All code uses Python stdlib only.
-  PyQt6 and podman-py are optional via `[gui]` and `[container]` extras
+  PyQt6 and podman are optional via `[gui]` and `[container]` extras
   in `pyproject.toml` and must never be imported at the top level of a
   stdlib-only module.
 - **Zero comments allowed**. No `#` comments, no block comments, no
@@ -213,7 +213,7 @@ These rules are enforced for all Python code produced:
    `boxes.app:main` which dispatches to `cli_main()` or `gui_main()`.
    The `--desktop` flag launches the PyQt6 GUI.
 10. **Zero runtime dependencies**: core and CLI work with Python stdlib
-    only. PyQt6 (`[gui]`) and podman-py (`[container]`) are optional extras.
+    only. PyQt6 (`[gui]`) and podman (`[container]`) are optional extras.
     All PyQt6 imports are guarded by `try/except ImportError`.
     No external service references (no SaaS, no API URLs, no package
     manager curl/wget in code). All system CLIs detected at runtime via

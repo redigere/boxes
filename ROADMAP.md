@@ -287,7 +287,7 @@ stdlib-only CI, end-to-end test suite.
 | 7.3 | RootCause -> Sentry/error reporting | Done | services/error_reporting/sentry_reporter.py |
 | 7.4 | Stdlib-only CI (no system Qt, no mypy, no ruff format) | Done | .github/workflows/ci.yml |
 | 7.5 | Flatpak manifest with GNOME Platform 47 | Done | io.boxes.Boxes.yml |
-| 7.6 | Optional PyQt6/podman-py extras (gui/container) | Done | pyproject.toml |
+| 7.6 | Optional PyQt6/podman extras (gui/container) | Done | pyproject.toml |
 | 7.7 | Zero external runtime dependencies | Done | pyproject.toml |
 | 7.8 | commit messages are single-line | Done | pre-commit convention |
 | 7.9 | Pre-commit hooks (ruff lint only) | Done | .pre-commit-config.yaml |

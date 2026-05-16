@@ -1,7 +1,6 @@
 1.0.0 - May 11, 2026
 =====================
 
-  - Complete rebranding: GNOME Boxes → Boxes
   - Rewrite in Python+Qt6 (PyQt6)
   - New modern UI with QListView-based collection
   - VM creation wizard (QWizard)
