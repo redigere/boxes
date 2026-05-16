@@ -25,11 +25,11 @@ fallback.
 
 The config file is `.opencode/opencode.json`.
 
-## Architecture & conventions (must follow)
+## Architecture and conventions (must follow)
 
 - **1C1F strict**: one class per file, no exceptions. File name = snake_case
-  of class name (e.g. `MachineState` → `machine_state.py`).
-- **No placeholders, no bare `pass`**: every method must have a real
+  of class name (e.g. `MachineState` -> `machine_state.py`).
+- **No placeholders, no bare pass**: every method must have a real
   implementation. Empty bodies are rejected.
 - **Type-0 first**: prioritise `KVMDevice`/`XenDevice` over QEMU/libvirt.
   The `detect_backend()` helper in `core.py` tries type-0, then qemu, then
@@ -45,94 +45,88 @@ The config file is `.opencode/opencode.json`.
 
 ## File layout
 
-```
-boxes/
-├── __init__.py
-├── __main__.py          # python -m boxes entry
-├── app.py               # PyQt6 QApplication
-├── app_window.py
-├── cli.py               # Click commands
-├── constants.py
-├── core.py              # BoxesCore, detect_backend()
-├── diagnostic_record.py # DiagnosticRecord
-├── diagnostics.py       # RootCause, get_root_cause()
-├── theme.py             # ThemeManager
-├── theme_mode.py        # ThemeMode
-├── util.py              # download_file, download_iso
-├── backends/
-│   ├── __init__.py      # re-exports BackendCapabilities, BaseBackend
-│   ├── backend_capabilities.py
-│   ├── base_backend.py
-│   ├── type0_backend.py # Type0Backend
-│   ├── kvm_device.py    # KVMDevice
-│   ├── xen_device.py    # XenDevice
-│   ├── qemu_backend.py  # QEMUBackend
-│   ├── qemu_process.py  # QEMUProcess
-│   ├── libvirt_backend.py
-│   ├── ssh_backend.py   # SSHBackend
-│   ├── ssh_config.py    # SSHConfig
-│   ├── macos_backend.py
-│   └── hyperv_backend.py
-├── dialogs/
-│   ├── __init__.py
-│   ├── source_page.py
-│   ├── config_page.py
-│   ├── summary_page.py
-│   ├── new_vm_assistant.py
-│   ├── resources_tab.py
-│   ├── storage_tab.py
-│   ├── network_tab.py
-│   ├── display_tab.py
-│   └── preferences_dialog.py
-├── models/
-│   ├── __init__.py
-│   ├── machine.py         # Machine (MachineState re-exported)
-│   ├── machine_state.py   # MachineState
-│   ├── collection.py
-│   ├── config.py          # BoxConfig
-│   ├── media.py           # InstallerMedia
-│   └── osdb.py            # OSDatabase
-├── services/
-│   ├── __init__.py
-│   ├── downloader.py      # DownloadManager (DownloadWorker re-exported)
-│   ├── download_worker.py # DownloadWorker
-│   ├── download_manager.py
-│   ├── snapshot.py        # Snapshot
-│   ├── snapshot_manager.py
-│   ├── shared_folder.py
-│   └── shared_folders_manager.py
-└── ui/
-    ├── __init__.py
-    ├── collection_view.py  # CollectionView (delegates re-exported)
-    ├── icon_view_delegate.py
-    ├── list_view_delegate.py
-    ├── toolbar.py          # re-exports both toolbars
-    ├── toolbar_collection.py
-    ├── toolbar_display.py
-    ├── toast.py            # re-exports toast classes
-    ├── toast_widget.py
-    ├── toast_overlay.py
-    ├── display_view.py
-    └── topbar.py
-```
+**boxes/** root files:
+- `__init__.py` - package metadata
+- `__main__.py` - `python -m boxes` entry
+- `app.py` - PyQt6 QApplication
+- `app_window.py` - QMainWindow
+- `cli.py` - Click commands
+- `constants.py` - XDG paths, defaults
+- `core.py` - BoxesCore, detect_backend()
+- `diagnostic_record.py` - DiagnosticRecord
+- `diagnostics.py` - RootCause, get_root_cause()
+- `theme.py` - ThemeManager
+- `theme_mode.py` - ThemeMode
+- `util.py` - download_file, download_iso
+- `worker.py` - AsyncWorker (QThread)
+
+**backends/** (hardware abstraction):
+- `__init__.py` - exports BaseBackend, BackendCapabilities
+- `base_backend.py` - abstract base class
+- `backend_capabilities.py` - capability flags
+- `type0/` - KVMDevice, XenDevice, XenBackend, Type0Backend
+- `qemu/` - QEMUBackend, QEMUProcess
+- `libvirt_backend.py` - LibvirtBackend
+- `ssh/` - SSHBackend, SSHConfig
+- `windows/` - HyperVBackend, MacOSBackend
+- Plus compat re-export stubs at flat level
+
+**models/**:
+- `machine.py` - Machine (QObject)
+- `machine_state.py` - MachineState enum
+- `collection.py` - MachineCollection (QAbstractListModel)
+- `config.py` - BoxConfig dataclass
+- `media.py` - InstallerMedia
+- `osdb.py` - OSDatabase
+
+**services/** (87+ files, 25+ subdirectory modules):
+- `download/` - DownloadManager, DownloadWorker
+- `snapshot/` - Snapshot, SnapshotManager
+- `shared/` - SharedFolder, SharedFoldersManager
+- `install/` - UnattendedInstaller, ISOExtractor
+- `container/` - PodmanManager
+- `spice/` - SPICEChannel, SPICEDisplay, SPICEInput, SPICEClipboard, SPICEFileTransfer, SPICEVDAgent
+- `vnc/` - VNCClient, VNCServer
+- `usb/` - USBDevice, USBRedirection
+- `template/` - TemplateManager, VMTemplate
+- `export/` - VMExporter, VMImporter
+- `migration/` - MigrationManager
+- `virgl/` - VirglRenderer
+- `benchmark/` - BenchmarkRunner
+- `error_reporting/` - SentryReporter
+- `auth/` - AuthManager
+- `firmware/` - FirmwareManager, OVMFManager
+- `osinfo/` - LibosinfoWrapper
+- `vdagent/` - VDAgentManager
+- Plus compat re-export stubs at flat level
+
+**dialogs/**:
+- NewVMAssistant (QWizard), SourcePage, ConfigPage, SummaryPage
+- ResourcesTab, StorageTab, NetworkTab, DisplayTab
+- PreferencesDialog, AboutDialog
+
+**ui/**:
+- CollectionView, IconViewDelegate, ListViewDelegate
+- DisplayWidget (VNC/SPICE rendering)
+- CollectionToolbar, DisplayToolbar
+- ToastWidget, ToastOverlay
+- Topbar, Searchbar
 
 ## Testing
 
 - **87 tests** spread across `tests/`:
-  - `test_imports.py` — verifies every module imports clean
-  - `test_models.py` — model unit tests
-  - `test_integration.py` — integration tests (diagnostics, backends)
-  - `test_e2e.py` — 35 E2E tests in 7 classes (networking, CLI, edge,
-    downloads)
+  - `test_imports.py` - module import verification
+  - `test_models.py` - model unit tests
+  - `test_integration.py` - core integration, diagnostics
+  - `test_e2e.py` - 39 E2E tests in 7 classes
 - Always run `python -m pytest tests/ -q` after changes.
 - Conditional download E2E: set `BOXES_SKIP_DOWNLOAD=1` to skip large ISO
   downloads in CI. On `push-to-master`, full Alpine ISO (~300 MB) is tested.
 - **ruff lint must pass**: `ruff check boxes/`.
-- **87 tests must pass** before commit.
 
-## CI & tooling
+## CI and tooling
 
-- `.github/workflows/ci.yml`: 4 jobs — lint (3.11/3.12/3.13), test, test-iso
+- `.github/workflows/ci.yml`: 4 jobs - lint (3.11/3.12/3.13), test, test-iso
   (master push only), package.
 - `.pre-commit-config.yaml`: ruff (lint+format), mypy,
   trailing-whitespace, end-of-file-fixer, check-yaml/toml,
@@ -142,7 +136,7 @@ boxes/
 
 ## Key decisions
 
-1. **`detect_backend()`** stays in `core.py` as module-level helper — not split.
+1. **`detect_backend()`** stays in `core.py` as module-level helper - not split.
 2. **Backward-compat stubs**: when 1C1F splits a class out of a file, the
    original file becomes a re-export stub (`from X import Y as Y`), so
    existing `from old_module import Y` imports continue to work.
