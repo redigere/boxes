@@ -29,10 +29,15 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+]
+optional-dependencies.gui = [
     "PyQt6>=6.5",
+]
+optional-dependencies.container = [
     "podman-py>=5",
 ]
 optional-dependencies.dev = [
+    "boxes[gui,container]",
     "pre-commit>=3",
     "pytest>=7",
     "pytest-qt>=4",
@@ -62,6 +67,11 @@ boxes = ["resources/**/*"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+indent-width = 4
+extend-exclude = ["*.yml", "*.md", "*.yaml", "*.toml"]
+
+[tool.ruff.format]
+indent-style = "tab"
 
 [tool.mypy]
 python_version = "3.11"

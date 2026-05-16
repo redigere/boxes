@@ -6,6 +6,6 @@ from boxes.models.media import InstallerMedia as InstallerMedia
 from boxes.models.osdb import OSDatabase as OSDatabase
 
 __all__ = [
-    "MachineState", "Machine", "BoxConfig",
-    "MachineCollection", "InstallerMedia", "OSDatabase",
+	"MachineState", "Machine", "BoxConfig",
+	"MachineCollection", "InstallerMedia", "OSDatabase",
 ]

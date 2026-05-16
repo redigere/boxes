@@ -10,9 +10,9 @@ from boxes.ui.icon_view_delegate import IconViewDelegate as IconViewDelegate
 from boxes.ui.list_view_delegate import ListViewDelegate as ListViewDelegate
 
 __all__ = [
-    "CollectionView", "DisplayWidget",
-    "Topbar", "Searchbar",
-    "CollectionToolbar", "DisplayToolbar",
-    "ToastWidget", "ToastOverlay",
-    "IconViewDelegate", "ListViewDelegate",
+	"CollectionView", "DisplayWidget",
+	"Topbar", "Searchbar",
+	"CollectionToolbar", "DisplayToolbar",
+	"ToastWidget", "ToastOverlay",
+	"IconViewDelegate", "ListViewDelegate",
 ]

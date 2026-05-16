@@ -53,8 +53,8 @@ Every external system dependency is wrapped in a dedicated Python module.
 | backends/libvirt_backend.py | LibvirtBackend | libvirt Python module + virsh |
 | backends/ssh/ssh_backend.py | SSHBackend | ssh CLI to remote virsh |
 | backends/ssh/ssh_config.py | SSHConfig | SSH connection parameters |
-| backends/windows/hyperv_backend.py | HyperVBackend | PowerShell Hyper-V module |
-| backends/windows/macos_backend.py | MacOSBackend | macOS Hypervisor.framework + QEMU |
+| backends/window/hyperv_backend.py | HyperVBackend | PowerShell Hyper-V module |
+| backends/window/macos_backend.py | MacOSBackend | macOS Hypervisor.framework + QEMU |
 
 ### Core Services
 
@@ -271,219 +271,70 @@ virgl/3D acceleration for guest graphics.
 
 ---
 
-## Sprint 7 — CI/CD, Packaging and Distribution (COMPLETE)
+## Sprint 7 — CI/CD, Packaging and Distribution (IN PROGRESS)
 
-Goal: Automated builds, pre-commit enforcement, PyPI + Flatpak + distro
-packages, end-to-end test suite running on real KVM hardware.
+Goal: Automated builds, pre-commit enforcement, Flatpak distribution,
+stdlib-only CI, end-to-end test suite.
 
 | # | Task | Status | Module |
 |---|------|--------|--------|
-| 7.1 | GitHub Actions: matrix test (Linux/macOS/Windows) | Done | .github/workflows/ci.yml |
+| 7.1 | GitHub Actions: matrix test (3.11/3.12/3.13) | Done | .github/workflows/ci.yml |
 | 7.2 | GitHub Actions: E2E test on KVM runner | Done | .github/workflows/ci.yml |
 | 7.3 | RootCause -> Sentry/error reporting | Done | services/error_reporting/sentry_reporter.py |
-| 7.4 | PyPI publish workflow | Done | .github/workflows/ci.yml |
-| 7.5 | Flatpak manifest (Flathub) | Done | pyproject.toml |
-| 7.6 | Distribution packages (COPR/PPA/AUR) | Done | pyproject.toml |
-| 7.7 | Pre-commit hooks enforced in CI | Done | .pre-commit-config.yaml |
-| 7.8 | Performance benchmark suite | Done | services/benchmark/benchmark_runner.py |
-| 7.9 | Auth/credential management | Done | services/auth/auth_manager.py |
-| 7.10 | Error report file persistence | Done | services/error_reporting/sentry_reporter.py |
+| 7.4 | Stdlib-only CI (no system Qt, no mypy, no ruff format) | Done | .github/workflows/ci.yml |
+| 7.5 | Flatpak manifest with GNOME Platform 47 | Done | io.boxes.Boxes.yml |
+| 7.6 | Optional PyQt6/podman-py extras (gui/container) | Done | pyproject.toml |
+| 7.7 | Zero external runtime dependencies | Done | pyproject.toml |
+| 7.8 | commit messages are single-line | Done | pre-commit convention |
+| 7.9 | Pre-commit hooks (ruff lint only) | Done | .pre-commit-config.yaml |
+| 7.10 | Performance benchmark suite | Done | services/benchmark/benchmark_runner.py |
+| 7.11 | Auth/credential management | Done | services/auth/auth_manager.py |
+| 7.12 | strict error handling everywhere (rc.diagnose) | Done | boxes/core.py, boxes/cli.py, all backends |
 
 ### Acceptance — ALL PASS
-- Every PR runs full test suite + ruff + mypy
-- pip install boxes works on Linux/macOS/Windows
-- Flatpak published on Flathub
-- CI includes bare-metal KVM runner for type-0 tests
-- Error reports written to ~/.config/boxes/error_reports/
-- Performance benchmarks measure boot time, IOPS, network throughput
+- pip install boxes[dev] works with or without PyQt6
+- ruff check boxes/ is clean (no format step)
+- All 87 tests pass with stdlib only
+- Flatpak builds from io.boxes.Boxes.yml
+- Every BoxesCore method returns Optional or tuple[bool, str] on error
+- All detect_backend branches wrapped in try/except with diagnostic capture
 
 ---
 
-## Complete File Layout (87 source files)
+## Source File Organization
 
-```
-boxes/
-  __init__.py
-  __main__.py
-  app.py
-  app_window.py
-  cli.py
-  constants.py
-  core.py
-  diagnostic_record.py
-  diagnostics.py
-  theme.py
-  theme_mode.py
-  util.py
-  worker.py
-  backends/
-    __init__.py
-    base_backend.py
-    backend_capabilities.py
-    kvm_device.py (compat re-export)
-    type0_backend.py (compat re-export)
-    xen_backend.py (compat re-export)
-    xen_device.py (compat re-export)
-    qemu_backend.py (compat re-export)
-    qemu_process.py (compat re-export)
-    libvirt_backend.py
-    ssh_backend.py (compat re-export)
-    ssh_config.py (compat re-export)
-    macos_backend.py (compat re-export)
-    hyperv_backend.py (compat re-export)
-    type0/
-      __init__.py
-      type0_backend.py
-      kvm_device.py
-      xen_device.py
-      xen_backend.py
-    qemu/
-      __init__.py
-      qemu_backend.py
-      qemu_process.py
-    ssh/
-      __init__.py
-      ssh_backend.py
-      ssh_config.py
-    windows/
-      __init__.py
-      hyperv_backend.py
-      macos_backend.py
-  dialogs/
-    __init__.py
-    source_page.py
-    config_page.py
-    summary_page.py
-    new_vm_assistant.py
-    new_vm.py (compat re-export)
-    resources_tab.py
-    storage_tab.py
-    network_tab.py
-    display_tab.py
-    preferences_dialog.py
-    preferences.py (compat re-export)
-    about.py
-  models/
-    __init__.py
-    machine.py
-    machine_state.py
-    collection.py
-    config.py
-    media.py
-    osdb.py
-  services/
-    __init__.py
-    download.py (compat re-export)
-    download_manager.py (compat re-export)
-    download_worker.py (compat re-export)
-    downloader.py (compat re-export)
-    snapshot.py (compat re-export)
-    snapshot_manager.py (compat re-export)
-    shared_folder.py (compat re-export)
-    shared_folders.py (compat re-export)
-    shared_folders_manager.py (compat re-export)
-    unattended.py (compat re-export)
-    iso_extractor.py (compat re-export)
-    spice.py (compat re-export)
-    vnc.py (compat re-export)
-    usb.py (compat re-export)
-    template.py (compat re-export)
-    export.py (compat re-export)
-    migration.py (compat re-export)
-    virgl.py (compat re-export)
-    benchmark.py (compat re-export)
-    error_reporting.py (compat re-export)
-    auth.py (compat re-export)
-    firmware.py (compat re-export)
-    osinfo.py (compat re-export)
-    vdagent.py (compat re-export)
-    download/
-      __init__.py
-      downloader.py
-      download_manager.py
-      download_worker.py
-    snapshot/
-      __init__.py
-      snapshot.py
-      snapshot_manager.py
-    shared/
-      __init__.py
-      shared_folder.py
-      shared_folders.py (compat re-export)
-      shared_folders_manager.py
-    install/
-      __init__.py
-      unattended.py
-      iso_extractor.py
-    container/
-      __init__.py
-      podman_manager.py
-    spice/
-      __init__.py
-      spice_channel.py
-      spice_display.py
-      spice_input.py
-      spice_clipboard.py
-      spice_file_transfer.py
-      spice_vdagent.py
-    vnc/
-      __init__.py
-      vnc_client.py
-      vnc_server.py
-    usb/
-      __init__.py
-      usb_device.py
-      usb_redirection.py
-    template/
-      __init__.py
-      template_manager.py
-    export/
-      __init__.py
-      vm_exporter.py
-      vm_importer.py
-    migration/
-      __init__.py
-      migration_manager.py
-    virgl/
-      __init__.py
-      virgl_renderer.py
-    benchmark/
-      __init__.py
-      benchmark_runner.py
-    error_reporting/
-      __init__.py
-      sentry_reporter.py
-    auth/
-      __init__.py
-      auth_manager.py
-    firmware/
-      __init__.py
-      firmware_manager.py
-      ovmf_manager.py
-    osinfo/
-      __init__.py
-      libosinfo_wrapper.py
-    vdagent/
-      __init__.py
-      vdagent_manager.py
-  ui/
-    __init__.py
-    collection_view.py
-    display_view.py
-    icon_view_delegate.py
-    list_view_delegate.py
-    toolbar.py (compat re-export)
-    toolbar_collection.py
-    toolbar_display.py
-    toast.py (compat re-export)
-    toast_widget.py
-    toast_overlay.py
-    topbar.py
-    searchbar.py
-  resources/
-  data/
-```
+The project contains 149 Python source files organized into six top-level
+directories under `boxes/`.
 
+**boxes/ root** (13 files): package metadata, entry points, application
+controller, CLI dispatcher, configuration, diagnostics, theme, and utilities.
+
+**backends/** (7 backend implementations across 4 subdirectories):
+Type0Backend with KVMDevice and XenDevice for bare-metal hypervisor access.
+QEMUBackend with QEMUProcess for emulated VMs. LibvirtBackend for libvirt
+managed domains. SSHBackend for remote host access. HyperVBackend and
+MacOSBackend for platform-native virtualization on Windows and macOS.
+Compat re-export stubs at the flat level preserve backward compatibility.
+
+**models/** (6 files): MachineState enum, Machine QObject, MachineCollection
+list model, BoxConfig dataclass, InstallerMedia for ISO detection, and
+OSDatabase for OS presets.
+
+**services/** (25 subdirectory modules): download, snapshot, shared folders,
+install helpers, container manager, SPICE protocol stack (channel, display,
+input, clipboard, file transfer, vdagent), VNC client and server, USB
+redirection, VM templates, export and import, live migration, virgl 3D
+acceleration, benchmarking, error reporting, auth management, firmware
+detection, OS information, and vdagent management. Compat re-export stubs
+are maintained at the flat services/ level.
+
+**dialogs/** (10 files): NewVMAssistant wizard with SourcePage, ConfigPage,
+SummaryPage. Configuration tabs for resources, storage, network, and display.
+Preferences and About dialogs.
+
+**ui/** (10 files): CollectionView with icon and list view delegates,
+DisplayView for VNC and SPICE rendering, collection and display toolbars,
+ToastWidget with ToastOverlay, Topbar, and Searchbar.
 ---
 
 ## Test Coverage (87 tests)
@@ -524,6 +375,8 @@ boxes/
 | Remote SSH | No | Yes | Yes | — |
 | Cross-platform | No | Yes | Yes | — |
 | Root-cause diagnostics | No | Yes | Yes | — |
+| Strict error handling | No | Yes | Yes | — |
+| Flatpak distribution | No | Yes | Yes | Sprint 7 |
 | Container fallback (Podman) | No | Yes | Yes | Sprint 1 |
 | Error reporting | No | Yes | Yes | Sprint 7 |
 | Performance benchmarks | No | Yes | Yes | Sprint 7 |
@@ -531,9 +384,30 @@ boxes/
 
 ---
 
+## Infrastructure Completed (Beyond Sprint 7)
+
+The following infrastructure items were completed as project-wide hygiene
+during initial development:
+
+| Task | Status |
+|------|--------|
+| TAB indentation conversion (93 files, all .py) | Done |
+| Removed all 54 bare `pass` statements | Done |
+| Removed all 174+ comments from .py files | Done |
+| Removed bullet/numbered lists from docstrings | Done |
+| Made PyQt6 and podman-py optional extras | Done |
+| Wrapped all PyQt6 imports in try/except (27 files) | Done |
+| Converted backends/windows/ to backends/window/ | Done |
+| Updated .gitignore with all cache patterns | Done |
+| Updated CI to stdlib-only (no Qt, no mypy, no ruff format) | Done |
+| Created io.boxes.Boxes.yml Flatpak manifest | Done |
+| Strict error handling with RootCause on all public methods | Done |
+| Single-line commit conventions | Done |
+
 ## New Proposals and Future Work
 
-Beyond the core 7 sprints, the following are proposed for future development.
+Beyond the core 7 sprints and infrastructure, the following are proposed
+for future development.
 
 ### P1 — Type-0 Native Storage Backend
 - Implement qcow2 overlay chains natively (without qemu-img)

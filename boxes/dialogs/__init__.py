@@ -10,9 +10,9 @@ from boxes.dialogs.preferences_dialog import PreferencesDialog as PreferencesDia
 from boxes.dialogs.about import AboutDialog as AboutDialog
 
 __all__ = [
-    "SourcePage", "ConfigPage", "SummaryPage",
-    "NewVMAssistant",
-    "ResourcesTab", "StorageTab", "NetworkTab", "DisplayTab",
-    "PreferencesDialog",
-    "AboutDialog",
+	"SourcePage", "ConfigPage", "SummaryPage",
+	"NewVMAssistant",
+	"ResourcesTab", "StorageTab", "NetworkTab", "DisplayTab",
+	"PreferencesDialog",
+	"AboutDialog",
 ]

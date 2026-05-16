@@ -6,6 +6,6 @@ from boxes.services.spice.spice_file_transfer import SPICEFileTransfer as SPICEF
 from boxes.services.spice.spice_vdagent import SPICEVDAgent as SPICEVDAgent
 
 __all__ = [
-    "SPICEChannel", "SPICEDisplay", "SPICEInput",
-    "SPICEClipboard", "SPICEFileTransfer", "SPICEVDAgent",
+	"SPICEChannel", "SPICEDisplay", "SPICEInput",
+	"SPICEClipboard", "SPICEFileTransfer", "SPICEVDAgent",
 ]

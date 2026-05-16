@@ -8,12 +8,12 @@ from boxes.services.install.iso_extractor import ISOExtractor as ISOExtractor
 from boxes.services.install.unattended import UnattendedInstaller as UnattendedInstaller
 from boxes.services.container import PodmanManager as PodmanManager
 from boxes.services.spice import (
-    SPICEChannel as SPICEChannel,
-    SPICEDisplay as SPICEDisplay,
-    SPICEInput as SPICEInput,
-    SPICEClipboard as SPICEClipboard,
-    SPICEFileTransfer as SPICEFileTransfer,
-    SPICEVDAgent as SPICEVDAgent,
+	SPICEChannel as SPICEChannel,
+	SPICEDisplay as SPICEDisplay,
+	SPICEInput as SPICEInput,
+	SPICEClipboard as SPICEClipboard,
+	SPICEFileTransfer as SPICEFileTransfer,
+	SPICEVDAgent as SPICEVDAgent,
 )
 from boxes.services.vnc import VNCClient as VNCClient, VNCServer as VNCServer
 from boxes.services.usb import USBDevice as USBDevice, USBRedirection as USBRedirection
@@ -29,23 +29,23 @@ from boxes.services.osinfo import LibosinfoWrapper as LibosinfoWrapper
 from boxes.services.vdagent import VDAgentManager as VDAgentManager
 
 __all__ = [
-    "DownloadManager", "DownloadWorker",
-    "Snapshot", "SnapshotManager",
-    "SharedFolder", "SharedFoldersManager",
-    "ISOExtractor", "UnattendedInstaller",
-    "PodmanManager",
-    "SPICEChannel", "SPICEDisplay", "SPICEInput",
-    "SPICEClipboard", "SPICEFileTransfer", "SPICEVDAgent",
-    "VNCClient", "VNCServer",
-    "USBDevice", "USBRedirection",
-    "TemplateManager",
-    "VMExporter", "VMImporter",
-    "MigrationManager",
-    "VirglRenderer",
-    "BenchmarkRunner",
-    "SentryReporter",
-    "AuthManager",
-    "FirmwareManager", "OVMFManager",
-    "LibosinfoWrapper",
-    "VDAgentManager",
+	"DownloadManager", "DownloadWorker",
+	"Snapshot", "SnapshotManager",
+	"SharedFolder", "SharedFoldersManager",
+	"ISOExtractor", "UnattendedInstaller",
+	"PodmanManager",
+	"SPICEChannel", "SPICEDisplay", "SPICEInput",
+	"SPICEClipboard", "SPICEFileTransfer", "SPICEVDAgent",
+	"VNCClient", "VNCServer",
+	"USBDevice", "USBRedirection",
+	"TemplateManager",
+	"VMExporter", "VMImporter",
+	"MigrationManager",
+	"VirglRenderer",
+	"BenchmarkRunner",
+	"SentryReporter",
+	"AuthManager",
+	"FirmwareManager", "OVMFManager",
+	"LibosinfoWrapper",
+	"VDAgentManager",
 ]

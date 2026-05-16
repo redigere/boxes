@@ -1,46 +1,59 @@
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
-from PyQt6.QtCore import pyqtSignal
+try:
+    from PyQt6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
+    from PyQt6.QtCore import pyqtSignal
+except ImportError:
+    QWidget = type("QWidget", (object,), {})
+    QHBoxLayout = type("QHBoxLayout", (object,), {})
+    QPushButton = type("QPushButton", (object,), {})
+    QLabel = type("QLabel", (object,), {})
+    class _DummySignal:
+        def emit(self, *args, **kwargs):
+            pass
+        def connect(self, *args, **kwargs):
+            pass
+    def pyqtSignal(*args, **kwargs):  # noqa: E731
+            return _DummySignal()
 
 
 class CollectionToolbar(QWidget):
-    createRequested = pyqtSignal()
-    deleteRequested = pyqtSignal()
-    refreshRequested = pyqtSignal()
-    searchRequested = pyqtSignal(str)
+	createRequested = pyqtSignal()
+	deleteRequested = pyqtSignal()
+	refreshRequested = pyqtSignal()
+	searchRequested = pyqtSignal(str)
 
-    def __init__(self, parent=None) -> None:
-        super().__init__(parent)
-        self._setup_ui()
+	def __init__(self, parent=None) -> None:
+		super().__init__(parent)
+		self._setup_ui()
 
-    def _setup_ui(self) -> None:
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)
+	def _setup_ui(self) -> None:
+		layout = QHBoxLayout(self)
+		layout.setContentsMargins(4, 4, 4, 4)
 
-        self._create_btn = QPushButton("New")
-        self._create_btn.clicked.connect(self.createRequested.emit)
-        layout.addWidget(self._create_btn)
+		self._create_btn = QPushButton("New")
+		self._create_btn.clicked.connect(self.createRequested.emit)
+		layout.addWidget(self._create_btn)
 
-        self._delete_btn = QPushButton("Delete")
-        self._delete_btn.clicked.connect(self.deleteRequested.emit)
-        layout.addWidget(self._delete_btn)
+		self._delete_btn = QPushButton("Delete")
+		self._delete_btn.clicked.connect(self.deleteRequested.emit)
+		layout.addWidget(self._delete_btn)
 
-        self._refresh_btn = QPushButton("Refresh")
-        self._refresh_btn.clicked.connect(self.refreshRequested.emit)
-        layout.addWidget(self._refresh_btn)
+		self._refresh_btn = QPushButton("Refresh")
+		self._refresh_btn.clicked.connect(self.refreshRequested.emit)
+		layout.addWidget(self._refresh_btn)
 
-        layout.addStretch()
+		layout.addStretch()
 
-        self._title_label = QLabel("Virtual Machines")
-        layout.addWidget(self._title_label)
+		self._title_label = QLabel("Virtual Machines")
+		layout.addWidget(self._title_label)
 
-        layout.addStretch()
+		layout.addStretch()
 
-        self._search_input = QWidget()
-        layout.addWidget(self._search_input)
+		self._search_input = QWidget()
+		layout.addWidget(self._search_input)
 
-    def set_title(self, title: str) -> None:
-        self._title_label.setText(title)
+	def set_title(self, title: str) -> None:
+		self._title_label.setText(title)
 
-    @property
-    def create_button(self) -> QPushButton:
-        return self._create_btn
+	@property
+	def create_button(self) -> QPushButton:
+		return self._create_btn

@@ -1,0 +1,37 @@
+id: io.boxes.Boxes
+runtime: org.gnome.Platform
+runtime-version: "47"
+sdk: org.gnome.Sdk
+base: org.gnome.Sdk
+base-version: "47"
+command: boxes
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --share=network
+  - --device=dri
+  - --filesystem=home
+  - --filesystem=/var/lib/libvirt:ro
+  - --filesystem=/dev/kvm
+  - --filesystem=/dev/net/tun
+  - --system-talk-name=org.freedesktop.machine1
+  - --talk-name=org.freedesktop.Flatpak
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /man
+  - /share/doc
+  - /share/gtk-doc
+  - /share/man
+  - /share/pkgconfig
+  - /share/vala
+  - /lib/*.la
+modules:
+  - name: python3-boxes
+    buildsystem: simple
+    build-commands:
+      - pip3 install --prefix=${FLATPAK_DEST} .[gui]
+    sources:
+      - type: dir
+        path: .

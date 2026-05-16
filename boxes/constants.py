@@ -28,21 +28,21 @@ MIN_DISK_GB = 1
 MAX_DISK_GB = 16384
 
 QEMU_BINARIES = {
-    "x86_64": "qemu-system-x86_64",
-    "aarch64": "qemu-system-aarch64",
-    "i386": "qemu-system-i386",
-    "arm": "qemu-system-arm",
-    "riscv64": "qemu-system-riscv64",
+	"x86_64": "qemu-system-x86_64",
+	"aarch64": "qemu-system-aarch64",
+	"i386": "qemu-system-i386",
+	"arm": "qemu-system-arm",
+	"riscv64": "qemu-system-riscv64",
 }
 
 BACKEND_PRIORITY = [
-    "type0",
-    "xen",
-    "libvirt",
-    "qemu",
-    "hyperv",
-    "macos",
-    "ssh",
+	"type0",
+	"xen",
+	"libvirt",
+	"qemu",
+	"hyperv",
+	"macos",
+	"ssh",
 ]
 
 PLATFORM = sys.platform

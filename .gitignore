@@ -1,5 +1,6 @@
-# Python
 __pycache__/
+*Cache*
+*cache*
 *.pyc
 *.pyo
 *.egg-info/
@@ -9,14 +10,11 @@ build/
 *.egg
 .venv/
 venv/
-
-# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
 Thumbs.db
+strip_comments.py
