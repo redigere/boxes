@@ -147,7 +147,7 @@ class AppWindow(QMainWindow):
             if w is not None:
                 w.deleteLater()
 
-        display = DisplayWidget(machine)
+        display = DisplayWidget(machine, backend=self.backend)
         self.display_stack.addWidget(display)
         self.display_stack.setCurrentWidget(display)
         self.setWindowTitle(f"{machine.name} — {__app_name__}")
